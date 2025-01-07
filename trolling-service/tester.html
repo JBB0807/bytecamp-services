@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Append Div</title>
+    <link href="https://unpkg.com/onedivloaders@1.0.0/index.css" rel="stylesheet">
+</head>
+<body>
+    <h1>Dynamic Div Appender</h1>
+
+    <script>
+        // Function to fetch and append the div
+        async function fetchAndAppendDiv() {
+            try {
+                const response = await fetch('http://localhost:8080/div');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const divHTML = await response.text();
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = divHTML;
+                const divElement = tempDiv.firstChild;
+                document.body.appendChild(divElement);
+            } catch (error) {
+                console.error('Error fetching the div:', error);
+            }
+        }
+
+        // Call the function to append the div on page load
+        window.onload = fetchAndAppendDiv;
+    </script>
+</body>
+</html>

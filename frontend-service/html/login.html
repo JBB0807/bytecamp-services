@@ -1,0 +1,30 @@
+ <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Home</title>
+            <link rel="stylesheet" href="/static/styles.css">
+        </head>
+        <body>
+            <div id="loader">Loading...</div>
+            <div id="content" style="display: none;"></div>
+
+            <script>
+                // Simulate a delay to show the loader
+                setTimeout(() => {
+                    fetch('/content')
+                        .then(response => response.text())
+                        .then(data => {
+                            document.getElementById('loader').style.display = 'none';
+                            const contentDiv = document.getElementById('content');
+                            contentDiv.style.display = 'block';
+                            contentDiv.innerHTML = data;
+                        })
+                        .catch(err => {
+                            document.getElementById('loader').innerText = 'Failed to load content.';
+                        });
+                }, 1000); // 1 second delay to simulate loading
+            </script>
+        </body>
+        </html>
