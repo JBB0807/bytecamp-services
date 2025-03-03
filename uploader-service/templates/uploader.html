@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notebook uploader</title>
+    <link href="https://unpkg.com/onedivloaders@1.0.0/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+
+<body class="container">
+    <br>
+
+    <h1>Byte camp battlesnake uploader</h1>
+    <form id="uploadForm">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Enter Name" required>
+        <label for="pid">pid</label>
+        <input type="number" id="email" name="pid" placeholder="Enter pid" required>
+        <label for="notebook">Notebook</label>
+        <input type="file" id="notebook" name="file" required accept=".ipynb">
+        <label for="jsonFile">JSON File (optional)</label>
+        <input type="file" id="jsonFile" name="jsonFile" accept=".json">
+
+        <button type="submit">Upload</button>
+    </form>
+    <style>
+        .message {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+    <div class="message" id="message"></div>
+
+    <script>
+        const uploadForm = document.getElementById('uploadForm');
+        const message = document.getElementById('message');
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log('Form submitted');  // Debugging line
+            const formData = new FormData(uploadForm);
+
+            console.log(formData);
+            console.log('Form submitted');  // Debugging line
+
+            try {
+
+                message.className = "message circle-packman-1";
+                console.log("waiting 5 seconds");
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                console.log('Form submitted');  // Debugging line
+                const response = await fetch('http://localhost:5000/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+
+                const data = await response.json();
+
+                console.log(data);
+
+
+                if (data.message) {
+                    message.className = 'message success';
+                    message.textContent = data.message;
+                } else {
+                    message.className = 'message error';
+                    message.textContent = data.error;
+                }
+            } catch (error) {
+                message.className = 'message error';
+                console.error(error);
+                message.textContent = 'An error occurred while uploading the notebook';
+            }
+        });
+    </script>
+
+</body>
+
+</html>

@@ -1,8 +1,7 @@
-# uploader microservice
-- handle uploads and registration to:
-    1. fly vms with snakes and brains(json)
-    2. google drive folders
-    3. google sheet link population
-    4. battlesnake.com for snake registration with our links
-- handle backend logic for multiple uploads, errors, reuploads, etc
-- connect with appscript or sheets api for autopopulation
+# docker commands to know
+
+`sudo docker build . -t registry.fly.io/snaketest:uniqueid`
+
+`docker push registry.fly.io/snaketest:uniqueid`
+
+`fly machine update e82d4d9c690e08 --image registry.fly.io/snaketest:uniqueid`

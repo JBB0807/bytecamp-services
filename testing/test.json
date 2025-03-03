@@ -1,0 +1,89 @@
+{
+    "id": "e28603db425378",
+    "name": "purple-surf-8738",
+    "state": "stopped",
+    "region": "sea",
+    "instance_id": "01JNCJEMDYBD351S6JFZF316V0",
+    "private_ip": "fdaa:c:cd38:a7b:bbfb:6619:1264:2",
+    "config": {
+        "env": {
+            "FLY_PROCESS_GROUP": "app"
+        },
+        "init": {},
+        "guest": {
+            "cpu_kind": "shared",
+            "cpus": 1,
+            "memory_mb": 512
+        },
+        "metadata": {
+            "fly_flyctl_version": "0.3.87",
+            "fly_platform_version": "v2",
+            "fly_process_group": "app",
+            "fly_release_id": "7pGPxgX11jYG2T94NqvJGYYxB",
+            "fly_release_version": "1"
+        },
+        "services": [
+            {
+                "protocol": "tcp",
+                "internal_port": 8000,
+                "force_instance_key": null
+            }
+        ],
+        "image": "registry.fly.io/snaketest:snake@sha256:5bba2930e42eeb25bb8128bacb61665be3d919a91dad60ac83420b7ffd18ea4b",
+        "restart": {
+            "policy": "on-failure",
+            "max_retries": 10
+        }
+    },
+    "incomplete_config": null,
+    "image_ref": {
+        "registry": "registry.fly.io",
+        "repository": "snaketest",
+        "tag": "snake",
+        "digest": "sha256:5bba2930e42eeb25bb8128bacb61665be3d919a91dad60ac83420b7ffd18ea4b",
+        "labels": null
+    },
+    "created_at": "2025-03-02T19:21:57Z",
+    "updated_at": "2025-03-03T00:13:15Z",
+    "events": [
+        {
+            "id": "01JNCNK2EXW38075F1Q6N7RRNZ",
+            "type": "stop",
+            "status": "stopped",
+            "source": "user",
+            "timestamp": 1740960795101
+        },
+        {
+            "id": "01JNCNJZ4RGAV7FZNMMPTMDBEH",
+            "type": "suspension",
+            "status": "suspended",
+            "source": "flyd",
+            "timestamp": 1740960791704
+        },
+        {
+            "id": "01JNCNJWBKGY0AVF1PGTB0PT1N",
+            "type": "suspension",
+            "status": "suspending",
+            "source": "user",
+            "timestamp": 1740960788851
+        },
+        {
+            "id": "01JNCJET67K8AC0SQ06HDVZ15X",
+            "type": "start",
+            "status": "started",
+            "request": {
+                "gpu_spot_price": 0
+            },
+            "source": "flyd",
+            "timestamp": 1740957509831
+        },
+        {
+            "id": "01JNCJEMEAK0D58J30VJ6V5000",
+            "type": "launch",
+            "status": "created",
+            "source": "user",
+            "timestamp": 1740957503946
+        }
+    ],
+    "host_status": "ok"
+}
