@@ -1,0 +1,58 @@
+{
+    "id": "d8dd901a2d5d08",
+    "name": "white-shape-1564",
+    "state": "created",
+    "region": "sea",
+    "instance_id": "01JND3WWY82EC22M0BNK5KZCVY",
+    "private_ip": "fdaa:c:cd38:a7b:2cb:927a:cf0:2",
+    "config": {
+        "env": {
+            "FLY_PROCESS_GROUP": "app"
+        },
+        "init": {},
+        "guest": {
+            "cpu_kind": "shared",
+            "cpus": 1,
+            "memory_mb": 512
+        },
+        "metadata": {
+            "fly_flyctl_version": "0.3.87",
+            "fly_platform_version": "v2",
+            "fly_process_group": "app",
+            "fly_release_id": "7pGPxgX11jYG2T94NqvJGYYxB",
+            "fly_release_version": "1"
+        },
+        "services": [
+            {
+                "protocol": "tcp",
+                "internal_port": 8000,
+                "force_instance_key": null
+            }
+        ],
+        "image": "registry.fly.io/snaketest:eb4f32f9-c3a9-41f5-bad6-fe1d807dcfa8",
+        "restart": {
+            "policy": "on-failure",
+            "max_retries": 10
+        }
+    },
+    "incomplete_config": null,
+    "image_ref": {
+        "registry": "registry.fly.io",
+        "repository": "snaketest",
+        "tag": "eb4f32f9-c3a9-41f5-bad6-fe1d807dcfa8",
+        "digest": "sha256:c3448fa967a56c89be41a71e11ddf5d43c7ee8c14565ded1d849ba5519b4808e",
+        "labels": null
+    },
+    "created_at": "2025-03-03T04:23:17Z",
+    "updated_at": "2025-03-03T04:23:17Z",
+    "events": [
+        {
+            "id": "01JND3WWZRCTMVB8YWJA88ENG6",
+            "type": "launch",
+            "status": "created",
+            "source": "user",
+            "timestamp": 1740975797240
+        }
+    ],
+    "host_status": "ok"
+}

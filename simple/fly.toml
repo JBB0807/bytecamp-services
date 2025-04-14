@@ -1,0 +1,22 @@
+# fly.toml app configuration file generated for snaketest on 2025-03-05T18:38:25-08:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'snaketest'
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 8000
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ['tls', 'http']
+
+  [[services.ports]]
+    port = 80
+    handlers = ['http']
+
+[[metrics]]
