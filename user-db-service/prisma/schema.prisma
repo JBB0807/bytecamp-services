@@ -9,7 +9,7 @@ datasource db {
 }
 
 model users {
-  UserId      String  @id
+  UserId      Int  @id @default(autoincrement())
   Name        String?
   Email       String?
   Password    String?
