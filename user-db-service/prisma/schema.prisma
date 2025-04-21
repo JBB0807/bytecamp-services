@@ -9,11 +9,11 @@ datasource db {
 }
 
 model users {
-  UserId      Int  @id @default(autoincrement())
-  Name        String?
-  Email       String?
-  Password    String?
-  Role        String?
-  GoogleId    String?
-  LoginType   String?
+  userid      Int     @id @default(autoincrement())
+  email       String  @unique
+  name        String?
+  password    String?
+  role        String?
+  googleid    String?
+  logintype   String?
 }

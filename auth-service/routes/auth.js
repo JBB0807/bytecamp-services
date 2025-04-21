@@ -1,21 +1,31 @@
 const router = require("express").Router();
 const passport = require("passport");
+const axios = require("axios");
 
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    successRedirect: process.env.CLIENT_URL,
-    failureRedirect: "/login/failed",
+    successRedirect: "/auth/login",
+    failureRedirect: "/auth/login/failed",
   })
 );
 
-router.get("/login/success", (req, res) => {
+router.get("/login", (req, res) => {
   if (req.user) {
-    res.status(200).json({
-      error: false,
-      message: "Successfully Logged In",
+
+    console.log(`${process.env.DB_USER_SERVICE_URL}instructor/register-user`)
+    axios.post(`${process.env.DB_USER_SERVICE_URL}instructor/register-user`, {
       user: req.user,
+    })
+    .then(response => {
+      console.log("User registration response:", response.data);
+      res.redirect(process.env.CLIENT_URL);
+    })
+    .catch(error => {
+      console.error("Error registering user:", error.message);
+      res.status(500).json({ error: true, message: "User login failed" });
     });
+
   } else {
     res.status(403).json({ error: true, message: "Not Authorized" });
   }
