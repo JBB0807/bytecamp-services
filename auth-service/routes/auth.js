@@ -19,7 +19,7 @@ router.get("/login", (req, res) => {
     })
     .then(response => {
       console.log("User registration response:", response.data);
-      res.redirect(process.env.CLIENT_URL);
+      res.redirect(process.env.LOGIN_REDIRECT_URL);
     })
     .catch(error => {
       console.error("Error registering user:", error.message);
@@ -42,7 +42,7 @@ router.get("/google", passport.authenticate("google", ["profile", "email"]));
 
 router.get("/logout", (req, res) => {
     req.logOut();
-    res.redirect(process.env.CLIENT_URL);
+    res.redirect(process.env.LOGIN_REDIRECT_URL);
 });
 
 module.exports = router;

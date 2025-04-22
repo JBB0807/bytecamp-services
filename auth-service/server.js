@@ -11,7 +11,7 @@ const app = express();
 
 app.use(
     session({
-        secret: process.env.SESSION_KEY,
+        secret: process.env.AUTH_SESSION_KEY,
         resave: false,
         saveUninitialized: false,
         cookie: {
@@ -25,7 +25,7 @@ app.use(passport.session());
 
 app.use(
     cors({
-        origin: "http://localhost:5173",
+        origin: "https://bytecamp-web.fly.dev",
         methods: "GET",
         credentials: true,
     })

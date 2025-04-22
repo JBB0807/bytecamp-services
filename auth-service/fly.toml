@@ -1,28 +1,42 @@
-# fly.toml app configuration file generated for snakebyte on 2025-01-04T01:06:05-08:00
+# fly.toml app configuration file generated for byte-camp-auth-service on 2025-04-21T14:38:25-07:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "auth-service"
-primary_region = "sea"
+app = 'byte-camp-auth-service'
+primary_region = 'sea'
+
+[build]
 
 [env]
-  PORT = "8080"
+  PORT = '8080'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
 
 [[services]]
+  protocol = 'tcp'
   internal_port = 8080
-  protocol = "tcp"
 
   [[services.ports]]
-    handlers = ["http"]
     port = 80
+    handlers = ['http']
 
   [[services.ports]]
-    handlers = ["tls", "http"]
     port = 443
+    handlers = ['tls', 'http']
 
   [[services.tcp_checks]]
-    interval = "10s"
-    timeout = "2s"
-    grace_period = "5s"
-    restart_limit = 0
+    interval = '10s'
+    timeout = '2s'
+    grace_period = '5s'
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

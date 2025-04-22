@@ -8,16 +8,13 @@ FROM node:${NODE_VERSION}-slim AS base
 WORKDIR /app
 
 COPY . .
-RUN npm install
-
-# Install dependencies using npm ci for deterministic builds
-# RUN --mount=type=cache,target=/root/.npm npm ci --production
+RUN apt-get update -y && apt-get install -y openssl && npm install && npx prisma generate
 
 # Copy the application source code
 COPY --link . .
 
 # Expose the application port
-EXPOSE 8080
+EXPOSE 3000
 
 # Define the command to run the application
-CMD ["node", "server.js"]
+CMD ["node", "app.js"]

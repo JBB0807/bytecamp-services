@@ -1,69 +1,45 @@
-# fly.toml app configuration file generated for snakebyte on 2025-01-04T01:06:05-08:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
+# fly.toml file for a Node.js service that connects to an external Postgres DB
 
-app = 'db-user-service'
-primary_region = 'sea'
+app = "db-user-service"
+primary_region = "sea"
 
-[env]
-  PRIMARY_REGION = 'sea'
+[build]
+# Only needed if you're using a Dockerfile — can be empty if using buildpacks or Node preset
 
-[[mounts]]
-  source = 'pg_data'
-  destination = '/data'
+#[env]
+  #NODE_ENV = "production"
+  #DATABASE_URL = "postgresql://user:password@hostname:port/dbname"
+  # you can also leave DATABASE_URL unset here and use secrets instead
 
-[[services]]
-  protocol = 'tcp'
-  internal_port = 5432
-  auto_start_machines = false
-
-  [[services.ports]]
-    port = 5432
-    handlers = ['pg_tls']
-
-  [services.concurrency]
-    type = 'connections'
-    hard_limit = 1000
-    soft_limit = 1000
+# Removed the [http_service] section to disable public HTTP/HTTPS access
+# [http_service]
+#   internal_port = 3000
+#   force_https = true
+#   auto_stop_machines = true
+#   auto_start_machines = true
+#   min_machines_running = 0
+#   processes = ["app"]
 
 [[services]]
-  protocol = 'tcp'
-  internal_port = 5433
-  auto_start_machines = false
+  protocol = "tcp"
+  internal_port = 3000
+  internal_only = true  # Makes this service only accessible internally
 
-  [[services.ports]]
-    port = 5433
-    handlers = ['pg_tls']
+  # Removed public port exposure
+  # [[services.ports]]
+  #   port = 80
+  #   handlers = ["http"]
+
+  # [[services.ports]]
+  #   port = 443
+  #   handlers = ["tls", "http"]
 
   [services.concurrency]
-    type = 'connections'
+    type = "requests"
     hard_limit = 1000
-    soft_limit = 1000
+    soft_limit = 500
 
-[checks]
-  [checks.pg]
-    port = 5500
-    type = 'http'
-    interval = '15s'
-    timeout = '10s'
-    path = '/flycheck/pg'
-
-  [checks.role]
-    port = 5500
-    type = 'http'
-    interval = '15s'
-    timeout = '10s'
-    path = '/flycheck/role'
-
-  [checks.vm]
-    port = 5500
-    type = 'http'
-    interval = '15s'
-    timeout = '10s'
-    path = '/flycheck/vm'
-
-[[metrics]]
-  port = 9187
-  path = '/metrics'
-  https = false
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
