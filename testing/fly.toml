@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for snaketest-crimson-resonance-3100 on 2025-04-17T09:53:30-07:00
+# fly.toml app configuration file generated for snaketest-wandering-moon-549 on 2025-04-17T12:33:55-07:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'snaketest-crimson-resonance-3100'
+app = 'snaketest-wandering-moon-549'
 primary_region = 'sea'
 
 [build]
