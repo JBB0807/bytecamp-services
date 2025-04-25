@@ -4,7 +4,7 @@ const axios = require("axios");
 
 const { DB_ASSIGNMENT_SERVICE_URL } = process.env.DB_ASSIGNMENT_SERVICE_URL || "http://localhost:3000";
 
-// 
+// This endpoint is for instructors to create a new assignment
 intructorRouter.post("/create", passport.authenticate("jwt", { session: false }), async (req, res) => {
   try {
     const response = await axios.post(`${DB_ASSIGNMENT_SERVICE_URL}/assignments`, req.body);
