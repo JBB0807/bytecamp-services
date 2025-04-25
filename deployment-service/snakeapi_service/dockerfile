@@ -1,0 +1,19 @@
+FROM python:3.11-slim
+WORKDIR /app
+
+# Install Jupyter, Flask, AWS CLI
+RUN pip install --no-cache-dir jupyter flask awscli
+
+# Copy runner scripts and notebook (relative to this Dockerfile)
+COPY entrypoint.sh .
+COPY battlesnake_server.py .
+COPY notebook.ipynb .
+
+RUN chmod +x entrypoint.sh
+
+# Set and expose the port
+ENV PORT=3006
+EXPOSE 3006
+
+# Start the notebook-to-Flask loop
+CMD ["./entrypoint.sh"]

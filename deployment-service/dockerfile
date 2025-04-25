@@ -1,0 +1,16 @@
+FROM node:18-alpine
+WORKDIR /app
+
+# Install dependencies
+COPY package.json ./
+RUN npm install --production
+
+# Copy source and example env
+COPY src ./src
+COPY .env.example .env
+
+# Expose port
+EXPOSE 3006
+
+# Start management service
+CMD ["npm", "start"]

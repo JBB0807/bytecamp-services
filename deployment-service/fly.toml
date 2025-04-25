@@ -1,0 +1,19 @@
+app = "deployment-service"
+primary_region = "sea"
+
+[build]
+
+[http_service]
+  internal_port = 3006
+
+[[services]]
+  protocol      = "tcp"
+  internal_port = 3006
+
+  [[services.ports]]
+    port     = 443
+    handlers = ["tls","http"]
+
+  [[services.ports]]
+    port     = 80
+    handlers = ["http"]
