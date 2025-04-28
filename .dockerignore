@@ -1,0 +1,70 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Environment and secrets
+.env*
+*.env
+*.pem
+*.key
+*.crt
+config.local.*
+*.local.yml
+
+# Version control
+.git/
+.gitignore
+.svn/
+.hg/
+
+# IDE/editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build and output directories
+dist/
+build/
+out/
+tmp/
+temp/
+*.tmp
+.local/
+local/
+
+# Test and debug artifacts
+test/
+tests/
+debug/
+*.log
+
+# Documentation
+README*
+*.md
+docs/
+
+# Docker and Compose files
+Dockerfile*
+docker-compose*
+
+# Project-specific
+fly.toml
+
+# Prisma generated files (if any)
+prisma/migrations/
+
+# Miscellaneous
+*.bak
+*.old
+*.orig
+
+# Exclude lock files (do NOT ignore them)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Exclude gradle/maven/go/python/java patterns not relevant to Node.js
+# (No __pycache__, *.pyc, *.pyo, .pytest_cache, .coverage, /vendor/, *.test, .go-cache, target/, *.class, .gradle/)
