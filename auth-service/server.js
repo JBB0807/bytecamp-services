@@ -23,13 +23,13 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// app.use(
-//     cors({
-//         origin: process.env.ACCEPTED_ORIGINS.split(","),
-//         methods: "GET",
-//         credentials: true,
-//     })
-// )
+app.use(
+    cors({
+        origin: process.env.ACCEPTED_ORIGINS.split(","),
+        methods: "GET",
+        credentials: true,
+    })
+)
 
 app.use("/auth", authRoute);
 
