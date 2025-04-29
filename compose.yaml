@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  js-assignment-db-service:
+    build:
+      context: ./assignment-db-service
+      dockerfile: DockerfileDEV
+    container_name: js-assignment-db-service
+    restart: unless-stopped
+    init: true
+    ports:
+      - "3200:3200"  # Expose port to the same host
+    env_file:
+      - ./assignment-db-service/dev.env
+    networks:
+      - backend
+
+  js-assignment-service:
+    build:
+      context: ./assignment-service
+      dockerfile: DockerfileDEV
+    container_name: js-assignment-service
+    restart: unless-stopped
+    init: true
+    ports:
+      - "8082:8082"  # Expose port to the same host
+    env_file:
+      - ./assignment-service/dev.env
+    depends_on:
+      - js-assignment-db-service
+    networks:
+      - backend
+
+  js-auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: DockerfileDEV
+    container_name: js-auth-service
+    restart: unless-stopped
+    init: true
+    ports:
+      - "8080:8080"  # Expose port to the same host
+    env_file:
+      - ./auth-service/dev.env
+    networks:
+      - backend
+
+  js-user-db-service:
+    build:
+      context: ./user-db-service
+      dockerfile: DockerfileDEV
+    container_name: js-user-db-service
+    restart: unless-stopped
+    init: true
+    ports:
+      - "3100:3100"  # Expose port to the same host
+    env_file:
+      - ./user-db-service/dev.env
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge

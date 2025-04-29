@@ -1,0 +1,45 @@
+# fly.toml file for a Node.js service that connects to an external Postgres DB
+
+app = "db-user-service"
+primary_region = "sea"
+
+[build]
+# Only needed if you're using a Dockerfile — can be empty if using buildpacks or Node preset
+
+#[env]
+  #NODE_ENV = "production"
+  #DATABASE_URL = "postgresql://user:password@hostname:port/dbname"
+  # you can also leave DATABASE_URL unset here and use secrets instead
+
+# Removed the [http_service] section to disable public HTTP/HTTPS access
+# [http_service]
+#   internal_port = 3000
+#   force_https = true
+#   auto_stop_machines = true
+#   auto_start_machines = true
+#   min_machines_running = 0
+#   processes = ["app"]
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 3000
+  internal_only = true  # Makes this service only accessible internally
+
+  # Removed public port exposure
+  # [[services.ports]]
+  #   port = 80
+  #   handlers = ["http"]
+
+  # [[services.ports]]
+  #   port = 443
+  #   handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type = "requests"
+    hard_limit = 1000
+    soft_limit = 500
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = "shared"
+  cpus = 1

@@ -1,0 +1,40 @@
+# Node.js specific
+**node_modules/
+npm-debug.log
+yarn-debug.log
+
+# Environment and secrets
+.env*
+*.env
+*.pem
+*.key
+*.crt
+
+# Development artifacts
+.idea/
+.vscode/
+*.swp
+*.swo
+dist/
+build/
+out/
+
+# Version control
+.git/
+.gitignore
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Documentation
+*.md
+README*
+
+# Docker files
+Dockerfile*
+docker-compose*
+
+# Project-specific
+package-lock.json

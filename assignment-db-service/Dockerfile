@@ -1,0 +1,20 @@
+# syntax=docker/dockerfile:1
+
+# Use the official Node.js image as the base image
+ARG NODE_VERSION=22.13.1
+FROM node:${NODE_VERSION}-slim AS base
+
+# Set the working directory
+WORKDIR /app
+
+COPY . .
+RUN apt-get update -y && apt-get install -y openssl && npm install && npx prisma generate
+
+# Copy the application source code
+COPY --link . .
+
+# Expose the application port
+EXPOSE 3000
+
+# Define the command to run the application
+CMD ["node", "app.js"]

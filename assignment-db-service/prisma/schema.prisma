@@ -1,0 +1,22 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "windows"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model assignments {
+  assignmentid   Int     @id @default(autoincrement())
+  campid         Int?
+  programid      Int?
+  studentname    String?
+  snakegameid    String?
+  originalfile   String?
+  editablefile   String?
+  assignmenturl  String?
+  passwordhash   String?  // store bcrypt hash
+  instructorid   Int?
+}
