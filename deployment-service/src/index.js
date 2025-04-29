@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const AWS = require('aws-sdk');
 const axios = require('axios');
+const tar = require('tar');
 
 const {
   FLY_ORG,
@@ -32,15 +33,23 @@ function createFlyClient() {
 }
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 app.post('/deploy', async (req, res) => {
   const { appName, region = 'sea', notebookName } = req.body;
-  if (!appName || !notebookName) return res.status(400).json({ error: 'appName and notebookName are required.' });
+  if (!appName || !notebookName) {
+    return res.status(400).json({ error: 'appName and notebookName required' });
+  }
 
   try {
     const fly = createFlyClient();
-    await fly.post('/apps', { name: appName, org_slug: FLY_ORG, primary_region: region });
+
+    await fly.post('/apps', {
+      name: appName,
+      org_slug: FLY_ORG,
+      primary_region: region
+    });
+
     await fly.post(`/apps/${appName}/secrets`, {
       secrets: {
         INSTANCE_PREFIX: appName,
@@ -52,18 +61,83 @@ app.post('/deploy', async (req, res) => {
       }
     });
 
-    const tpl = fs.readFileSync(path.join(__dirname, '../snakeapi_service', notebookName));
+    const notebookFile = path.join(__dirname, '../snakeapi_service/notebooks', notebookName);
+    const notebookData = fs.readFileSync(notebookFile);
     await s3.putObject({
       Bucket: COMMON_BUCKET,
-      Key: `${appName}/${notebookName}`,
-      Body: tpl,
+      Key: `${appName}/notebook.ipynb`,
+      Body: notebookData,
       ContentType: 'application/json'
     }).promise();
 
-    await fly.post(`/apps/${appName}/deploys`);
-    res.json({ status: 'created', app: appName, url: `https://${appName}.fly.dev` });
+    const tarFilePath = `/tmp/${appName}.tar.gz`;
+    await tar.c(
+      {
+        gzip: true,
+        file: tarFilePath,
+        cwd: path.join(__dirname, '../snakeapi_service')
+      },
+      ['.']
+    );
+
+    const tarData = fs.readFileSync(tarFilePath);
+    await fly.post(`/apps/${appName}/deploys`, tarData, {
+      headers: { 'Content-Type': 'application/gzip' }
+    });
+
+    res.json({
+      status: 'created',
+      app: appName,
+      url: `https://${appName}.fly.dev`
+    });
   } catch (error) {
-    console.error('Deploy endpoint failed:', error);
+    res.status(500).json({ error: error.response?.data || error.message });
+  }
+});
+
+app.post('/upload/:appName', async (req, res) => {
+  const { appName } = req.params;
+  const notebookContent = req.body;
+
+  if (!notebookContent) {
+    return res.status(400).json({ error: 'Notebook content required.' });
+  }
+
+  try {
+    const notebookBuffer = Buffer.from(JSON.stringify(notebookContent));
+    await s3.putObject({
+      Bucket: COMMON_BUCKET,
+      Key: `${appName}/notebook.ipynb`,
+      Body: notebookBuffer,
+      ContentType: 'application/json'
+    }).promise();
+
+    const fly = createFlyClient();
+
+    const tempNotebookPath = path.join(__dirname, '../snakeapi_service/notebooks/notebook.ipynb');
+    fs.writeFileSync(tempNotebookPath, notebookBuffer);
+
+    const tarFilePath = `/tmp/${appName}-redeploy.tar.gz`;
+    await tar.c(
+      {
+        gzip: true,
+        file: tarFilePath,
+        cwd: path.join(__dirname, '../snakeapi_service')
+      },
+      ['.']
+    );
+
+    const tarData = fs.readFileSync(tarFilePath);
+    await fly.post(`/apps/${appName}/deploys`, tarData, {
+      headers: { 'Content-Type': 'application/gzip' }
+    });
+
+    res.json({
+      status: 'updated',
+      app: appName,
+      message: 'Notebook updated and application redeployed.'
+    });
+  } catch (error) {
     res.status(500).json({ error: error.response?.data || error.message });
   }
 });

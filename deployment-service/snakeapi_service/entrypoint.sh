@@ -15,7 +15,6 @@ while true; do
   if [ "$new_mod" -ne "$last_mod" ]; then
     last_mod=$new_mod
     jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=0 notebook.ipynb
-    echo "Notebook executed; restarting..."
   fi
 
   sleep 1

@@ -4,7 +4,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir jupyter flask awscli flask_cors nbconvert nbformat
 
 COPY entrypoint.sh .
-COPY notebook.ipynb .
+COPY notebooks ./notebooks
 
 RUN chmod +x entrypoint.sh
 
