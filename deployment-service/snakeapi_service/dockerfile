@@ -5,6 +5,7 @@ RUN pip install --no-cache-dir jupyter flask awscli flask_cors nbconvert nbforma
 
 COPY entrypoint.sh .
 COPY notebooks ./notebooks
+COPY snakeapi_server.py .
 
 RUN chmod +x entrypoint.sh
 
