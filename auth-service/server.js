@@ -26,7 +26,7 @@ app.use(passport.session());
 app.use(
     cors({
         origin: process.env.ACCEPTED_ORIGINS.split(","),
-        methods: "GET",
+        methods: ["GET", "POST"],
         credentials: true,
     })
 )

@@ -38,7 +38,6 @@ instructorRouter.post("/register-user", async (req, res) => {
         },
       });
       console.log("New user created:", newUser);
-
       res.json({ message: "User added successfully", user: newUser });
     } else {
       console.log("User already exists:", user);

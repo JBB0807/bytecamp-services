@@ -20,7 +20,7 @@ COPY package*.json ./
 RUN npm install && npx prisma generate
 
 # Rebuild bcrypt specifically (optional if clean install is guaranteed)
-RUN npm rebuild bcrypt --build-from-source
+# RUN npm rebuild bcrypt --build-from-source
 
 # Expose the application port
 EXPOSE 3200

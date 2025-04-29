@@ -8,15 +8,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Assignment {
-  AssignmentID   Int     @id @default(autoincrement())
-  CampID         Int?
-  ProgramID      Int?
-  StudentName    String
-  SnakeGameId    String?
-  OriginalFile   String?
-  EditableFile   String?
-  AssignmentUrl  String?
-  PasswordHash   String  // store bcrypt hash
-  InstructorID   Int?
+model assignments {
+  assignmentid   Int     @id @default(autoincrement())
+  campid         Int?
+  programid      Int?
+  studentname    String?
+  snakegameid    String?
+  originalfile   String?
+  editablefile   String?
+  assignmenturl  String?
+  passwordhash   String?  // store bcrypt hash
+  instructorid   Int?
 }

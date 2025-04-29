@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     init: true
     ports:
-      - "3000:3000"  # Expose port to the same host
+      - "3200:3200"  # Expose port to the same host
     env_file:
       - ./assignment-db-service/dev.env
     networks:

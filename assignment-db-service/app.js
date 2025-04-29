@@ -1,6 +1,6 @@
-const express = require('express');
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcrypt');
+const express = require("express");
+const { PrismaClient } = require("@prisma/client");
+const bcrypt = require("bcrypt");
 
 const app = express();
 const prisma = new PrismaClient();
@@ -10,117 +10,150 @@ const port = process.env.NODE_PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+//function to conver req.body to assignment
+function convertToAssignment(req) {
+  const {
+    campid,
+    programid,
+    studentname,
+    snakegameid,
+    originalfile,
+    editablefile,
+    assignmenturl,
+    password,
+    instructorid
+  } = req.body;
+
+  // const hashedPassword = await bcrypt.hash(Password, 10);
+    return {
+      campid: campid,
+      programid: programid,
+      studentname: studentname,
+      snakegameid: snakegameid,
+      originalfile: originalfile,
+      editablefile: editablefile,
+      assignmenturl: assignmenturl,
+      // passwordhash: hashedpassword,
+      passwordhash: password,
+      instructorid: instructorid,
+    };
+  }
+
 // Create Assignment
-app.post('/assignments', async (req, res) => {
+app.post("/assignments", async (req, res) => {
   try {
-    const {
-      CampID,
-      ProgramID,
-      StudentName,
-      SnakeGameId,
-      OriginalFile,
-      EditableFile,
-      AssignmentUrl,
-      Password,
-      InstructorID,
-    } = req.body;
+    console.log("Request body:", req.body);
 
-    const hashedPassword = await bcrypt.hash(Password, 10);
+    // const {
+    //   campid,
+    //   programid,
+    //   studentname,
+    //   snakegameid,
+    //   originalfile,
+    //   editablefile,
+    //   assignmenturl,
+    //   password,
+    //   instructorid
+    // } = req.body;
 
-    const newAssignment = await prisma.assignment.create({
+    // const hashedPassword = await bcrypt.hash(Password, 10);
+    const newAssignment = await prisma.assignments.create({
       data: {
-        CampID,
-        ProgramID,
-        StudentName,
-        SnakeGameId,
-        OriginalFile,
-        EditableFile,
-        AssignmentUrl,
-        PasswordHash: hashedPassword,
-        InstructorID,
+        ...convertToAssignment(req)
       },
     });
 
-    res.json({ message: 'Assignment created successfully', assignment: newAssignment });
+    console.log("Assignment created successfully:", newAssignment);
+
+    res.json({
+      message: "Assignment created successfully",
+      assignment: newAssignment,
+    });
   } catch (err) {
-    console.error('Error creating assignment:', err.message);
+    console.error("Error creating assignment:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
 // Get Assignments by InstructorID
-app.get('/assignments/instructor/:instructorId', async (req, res) => {
+app.get("/assignments/instructor/:instructorId", async (req, res) => {
   try {
     const { instructorId } = req.params;
-
-    const assignments = await prisma.assignment.findMany({
-      where: { InstructorID: parseInt(instructorId) },
+    console.log("InstructorID:", instructorId);
+    const assignments = await prisma.assignments.findMany({
+      where: { instructorid: parseInt(instructorId) },
     });
 
     if (assignments.length === 0) {
-      return res.status(404).json({ message: 'No assignments found for this instructor' });
+      return res
+        .status(404)
+        .json({ message: "No assignments found for this instructor" });
     }
 
     res.json(assignments);
   } catch (err) {
-    console.error('Error fetching assignments:', err.message);
+    console.error("Error fetching assignments:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
 // Read Assignment
-app.get('/assignments/:id', async (req, res) => {
+app.get("/assignments/:id", async (req, res) => {
   try {
-    const assignment = await prisma.assignment.findUnique({
-      where: { AssignmentID: parseInt(req.params.id) },
+    const assignment = await prisma.assignments.findUnique({
+      where: { assignmentid: parseInt(req.params.id) },
     });
 
     if (!assignment) {
-      return res.status(404).json({ message: 'Assignment not found' });
+      return res.status(404).json({ message: "Assignment not found" });
     }
 
     res.json(assignment);
   } catch (err) {
-    console.error('Error fetching assignment:', err.message);
+    console.error("Error fetching assignment:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
 // Update Assignment
-app.put('/assignments/:id', async (req, res) => {
+app.put("/assignments/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const data = req.body;
 
-    if (data.Password) {
-      data.PasswordHash = await bcrypt.hash(data.Password, 10);
-      delete data.Password;
+    if (data.password) {
+      // data.passwordhash = await bcrypt.hash(data.Password, 10);
+      data.passwordhash = data.password;
+      delete data.password;
     }
 
-    const updatedAssignment = await prisma.assignment.update({
-      where: { AssignmentID: parseInt(id) },
+    const updatedAssignment = await prisma.assignments.update({
+      where: { assignmentid: parseInt(id) },
       data,
     });
 
-    res.json({ message: 'Assignment updated successfully', assignment: updatedAssignment });
+    res.json({
+      message: "Assignment updated successfully",
+      assignment: updatedAssignment,
+    });
   } catch (err) {
-    console.error('Error updating assignment:', err.message);
+    console.error("Error updating assignment:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
 // Delete Assignment
-app.delete('/assignments/:id', async (req, res) => {
+app.delete("/assignments/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    await prisma.assignment.delete({
-      where: { AssignmentID: parseInt(id) },
+    await prisma.assignments.delete({
+      where: { assignmentid: parseInt(id) },
     });
 
-    res.json({ message: 'Assignment deleted successfully' });
+    res.json({ message: "Assignment deleted successfully" });
   } catch (err) {
-    console.error('Error deleting assignment:', err.message);
+    console.error("Error deleting assignment:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
