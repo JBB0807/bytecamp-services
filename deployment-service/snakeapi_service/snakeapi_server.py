@@ -1,7 +1,11 @@
 import os
 import logging
 import typing
-from flask import Flask, request
+import json
+import nbformat
+from nbconvert import PythonExporter
+import subprocess
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 def run_server(handlers: typing.Dict):
@@ -26,10 +30,18 @@ def run_server(handlers: typing.Dict):
         handlers["end"](request.get_json())
         return "ok"
 
-    @app.after_request
-    def identify_server(response):
-        response.headers["server"] = "battlesnake/github/starter-snake-python"
-        return response
+    @app.get("/notebook")
+    def get_notebook():
+        with open("notebook.ipynb", "r", encoding="utf-8") as f:
+            content = f.read()
+        return content, 200, {"Content-Type": "application/json"}
+
+    @app.post("/notebook")
+    def update_notebook():
+        notebook_json = request.get_json()
+        with open("notebook.ipynb", "w", encoding="utf-8") as f:
+            json.dump(notebook_json, f)
+        return {"status": "saved"}, 200
 
     port = int(os.environ.get("PORT", "3006"))
     logging.getLogger("werkzeug").setLevel(logging.ERROR)

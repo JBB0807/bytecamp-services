@@ -1,0 +1,17 @@
+app = ""
+kill_signal = "SIGINT"
+kill_timeout = 5
+
+[build]
+dockerfile = "Dockerfile"
+
+[env]
+  PORT = "3006"
+
+[[services]]
+internal_port = 3006
+protocol = "tcp"
+
+[[services.ports]]
+handlers = ["http"]
+port = 80
