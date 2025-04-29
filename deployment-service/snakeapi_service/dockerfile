@@ -4,7 +4,6 @@ WORKDIR /app
 RUN pip install --no-cache-dir jupyter flask awscli flask_cors nbconvert nbformat
 
 COPY entrypoint.sh .
-COPY battlesnake_server.py .
 COPY notebook.ipynb .
 
 RUN chmod +x entrypoint.sh

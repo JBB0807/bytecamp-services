@@ -1,16 +1,11 @@
 FROM node:18-alpine
 WORKDIR /app
 
-# Install dependencies
-COPY package.json ./
-RUN npm install --production
+COPY package.json package-lock.json ./
+RUN npm ci --only=production
 
-# Copy source and example env
 COPY src ./src
-COPY .env.example .env
+COPY snakeapi_service ./snakeapi_service
 
-# Expose port
 EXPOSE 3006
-
-# Start management service
-CMD ["npm", "start"]
+CMD ["node", "src/index.js"]
