@@ -24,7 +24,7 @@ const s3 = new AWS.S3({
 
 function createFlyClient() {
   return axios.create({
-    baseURL: 'https://api.fly.io',
+    baseURL: 'https://api.machines.dev/v1',
     headers: {
       Authorization: `Bearer ${FLY_ACCESS_TOKEN}`,
       'Content-Type': 'application/json'
@@ -45,7 +45,7 @@ app.post('/deploy', async (req, res) => {
     const fly = createFlyClient();
 
     await fly.post('/apps', {
-      name: appName,
+      app_name: appName,
       org_slug: FLY_ORG,
       primary_region: region
     });
@@ -62,10 +62,17 @@ app.post('/deploy', async (req, res) => {
     });
 
     const notebookFile = path.join(__dirname, '../snakeapi_service/notebooks', notebookName);
+
+    if (!fs.existsSync(notebookFile)) {
+      throw new Error(`Notebook file ${notebookName} not found.`);
+    }
+
     const notebookData = fs.readFileSync(notebookFile);
+    const timestamp = Date.now();
+
     await s3.putObject({
       Bucket: COMMON_BUCKET,
-      Key: `${appName}/notebook.ipynb`,
+      Key: `${appName}/notebooks/${timestamp}-notebook.ipynb`,
       Body: notebookData,
       ContentType: 'application/json'
     }).promise();
@@ -89,53 +96,6 @@ app.post('/deploy', async (req, res) => {
       status: 'created',
       app: appName,
       url: `https://${appName}.fly.dev`
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.response?.data || error.message });
-  }
-});
-
-app.post('/upload/:appName', async (req, res) => {
-  const { appName } = req.params;
-  const notebookContent = req.body;
-
-  if (!notebookContent) {
-    return res.status(400).json({ error: 'Notebook content required.' });
-  }
-
-  try {
-    const notebookBuffer = Buffer.from(JSON.stringify(notebookContent));
-    await s3.putObject({
-      Bucket: COMMON_BUCKET,
-      Key: `${appName}/notebook.ipynb`,
-      Body: notebookBuffer,
-      ContentType: 'application/json'
-    }).promise();
-
-    const fly = createFlyClient();
-
-    const tempNotebookPath = path.join(__dirname, '../snakeapi_service/notebooks/notebook.ipynb');
-    fs.writeFileSync(tempNotebookPath, notebookBuffer);
-
-    const tarFilePath = `/tmp/${appName}-redeploy.tar.gz`;
-    await tar.c(
-      {
-        gzip: true,
-        file: tarFilePath,
-        cwd: path.join(__dirname, '../snakeapi_service')
-      },
-      ['.']
-    );
-
-    const tarData = fs.readFileSync(tarFilePath);
-    await fly.post(`/apps/${appName}/deploys`, tarData, {
-      headers: { 'Content-Type': 'application/gzip' }
-    });
-
-    res.json({
-      status: 'updated',
-      app: appName,
-      message: 'Notebook updated and application redeployed.'
     });
   } catch (error) {
     res.status(500).json({ error: error.response?.data || error.message });
