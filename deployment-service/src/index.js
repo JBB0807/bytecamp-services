@@ -48,6 +48,27 @@ function createFlyClient() {
   });
 }
 
+// Fly GraphQL client (for IP allocation)
+const gqlClient = axios.create({
+  baseURL: 'https://api.fly.io/graphql',
+  headers: {
+    Authorization: `Bearer ${FLY_ACCESS_TOKEN}`,
+    'Content-Type': 'application/json'
+  }
+});
+
+// GraphQL ミューテーション定義
+const ALLOCATE_IP_MUTATION = `
+mutation AllocateIp($input: AllocateIPAddressInput!) {
+  allocateIpAddress(input: $input) {
+    ipAddress {
+      address
+      type
+    }
+  }
+}
+`;
+
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 
@@ -116,10 +137,47 @@ app.post('/deploy', async (req, res) => {
     console.log('Machine config:', machineConfig);
     await fly.post(`/apps/${appName}/machines`, machineConfig);
 
+    // ── ここから IP 割り当て ──
+
+    // GraphQL で IPv4 を割り当て
+    console.log('Allocating IPv4 via GraphQL API');
+    const v4resp = await gqlClient.post('', {
+      query: ALLOCATE_IP_MUTATION,
+      variables: {
+        input: {
+          appId: appName,
+          type: 'v4'
+        }
+      }
+    });
+    const ipv4 = v4resp.data.data.allocateIpAddress.ipAddress.address;
+    console.log('Allocated IPv4:', ipv4);
+
+    // GraphQL で IPv6 を割り当て
+    console.log('Allocating IPv6 via GraphQL API');
+    const v6resp = await gqlClient.post('', {
+      query: ALLOCATE_IP_MUTATION,
+      variables: {
+        input: {
+          appId: appName,
+          type: 'v6'
+        }
+      }
+    });
+    const ipv6 = v6resp.data.data.allocateIpAddress.ipAddress.address;
+    console.log('Allocated IPv6:', ipv6);
+
     console.log('Deployment successful:', appName);
-    return res.json({ status: 'created', url: `https://${appName}.fly.dev` });
+    return res.json({
+      status: 'created',
+      app: appName,
+      ipv4,
+      ipv6,
+      url_v4: `http://${ipv4}`,
+      url_v6: `http://[${ipv6}]`
+    });
   } catch (err) {
-    console.error('Deployment error:', err.stack || err);
+    console.error('Deployment error:', err.response?.data || err.stack || err.message);
     return res.status(500).json({ error: err.response?.data || err.message });
   }
 });
