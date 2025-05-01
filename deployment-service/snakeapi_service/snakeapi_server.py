@@ -5,13 +5,14 @@ import importlib.util
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-# load handlers from converted notebook
 notebook_path = os.environ.get("NOTEBOOK_PATH")
 if not notebook_path or not os.path.isfile(notebook_path):
     raise RuntimeError(f"Notebook module not found: {notebook_path}")
+
 spec = importlib.util.spec_from_file_location("notebook_module", notebook_path)
 notebook_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(notebook_module)
+
 handlers = {
     "info": notebook_module.info,
     "start": notebook_module.start,
@@ -53,9 +54,10 @@ def run_server(handlers: typing.Dict):
     def get_notebook_path():
         return jsonify({"path": notebook_path})
 
-    host = "::"
+    host = "0.0.0.0"
     port = int(os.environ.get("PORT", "3006"))
     logging.getLogger("werkzeug").setLevel(logging.ERROR)
+
     app.run(host=host, port=port)
 
 if __name__ == "__main__":
