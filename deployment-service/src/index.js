@@ -1,5 +1,3 @@
-// src/index.js
-
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -17,7 +15,7 @@ const {
   IMAGE_REF
 } = process.env;
 
-// --- ENV debug ---
+// Log environment variables for debugging
 console.log('--- ENV START ---');
 console.log('FLY_ORG:              ', FLY_ORG);
 console.log('COMMON_BUCKET:        ', COMMON_BUCKET);
@@ -29,7 +27,7 @@ console.log('FLY_ACCESS_TOKEN:     ', FLY_ACCESS_TOKEN ? '(found)' : '(NOT SET)'
 console.log('IMAGE_REF:            ', IMAGE_REF);
 console.log('--- ENV END   ---');
 
-// S3 client
+// Initialize S3 client
 const s3 = new AWS.S3({
   endpoint: AWS_ENDPOINT_URL_S3,
   region: AWS_REGION,
@@ -37,7 +35,7 @@ const s3 = new AWS.S3({
   s3ForcePathStyle: true
 });
 
-// Fly Machines API client
+// Create Fly Machines API client
 function createFlyClient() {
   return axios.create({
     baseURL: 'https://api.machines.dev/v1',
@@ -48,7 +46,7 @@ function createFlyClient() {
   });
 }
 
-// Fly GraphQL client (for IP allocation)
+// Create Fly GraphQL client (for IP allocation)
 const gqlClient = axios.create({
   baseURL: 'https://api.fly.io/graphql',
   headers: {
@@ -57,7 +55,7 @@ const gqlClient = axios.create({
   }
 });
 
-// GraphQL ミューテーション定義
+// Define GraphQL mutation for IP allocation
 const ALLOCATE_IP_MUTATION = `
 mutation AllocateIp($input: AllocateIPAddressInput!) {
   allocateIpAddress(input: $input) {
@@ -79,10 +77,8 @@ app.post('/deploy', async (req, res) => {
     return res.status(400).json({ error: 'appName and notebookName required' });
   }
 
-  // resolve path based on SSH-inspected layout
   const notebookPath = path.join(__dirname, '../snakeapi_service/notebooks', notebookName);
   console.log('Resolved notebookPath:', notebookPath);
-  console.log('File exists:', fs.existsSync(notebookPath));
   if (!fs.existsSync(notebookPath)) {
     console.error('Notebook not found at:', notebookPath);
     return res.status(500).json({ error: `Notebook not found: ${notebookPath}` });
@@ -112,7 +108,7 @@ app.post('/deploy', async (req, res) => {
     console.log('Creating machine');
     const machineConfig = {
       name: `${appName}-machine`,
-      region,
+      region: region,
       count: 1,
       vm_size: 'shared-cpu-1x',
       autostart: true,
@@ -121,53 +117,51 @@ app.post('/deploy', async (req, res) => {
         env: {
           INSTANCE_PREFIX: appName,
           NOTEBOOK_KEY: key,
-          BUCKET_NAME: COMMON_BUCKET,
+          COMMON_BUCKET: COMMON_BUCKET,
           AWS_ACCESS_KEY_ID,
           AWS_SECRET_ACCESS_KEY,
           AWS_ENDPOINT_URL_S3,
           AWS_REGION
         },
-        services: [{
-          internal_port: 3006,
-          protocol: 'tcp',
-          ports: [{ port: 80, handlers: ['http'] }]
-        }]
+        http_service: {
+          internal_port: 8000,
+          force_https: true,
+          auto_stop_machines: 'stop',
+          auto_start_machines: true,
+          min_machines_running: 0,
+          processes: ['app']
+        },
+        services: [
+          {
+            protocol: 'tcp',
+            internal_port: 8000,
+            ports: [
+              { port: 443, handlers: ['tls', 'http'] },
+              { port: 80,  handlers: ['http'] }
+            ]
+          }
+        ]
       }
     };
-    console.log('Machine config:', machineConfig);
+    console.log('Machine config:', JSON.stringify(machineConfig, null, 2));
     await fly.post(`/apps/${appName}/machines`, machineConfig);
 
-    // ── ここから IP 割り当て ──
-
-    // GraphQL で IPv4 を割り当て
     console.log('Allocating IPv4 via GraphQL API');
     const v4resp = await gqlClient.post('', {
       query: ALLOCATE_IP_MUTATION,
-      variables: {
-        input: {
-          appId: appName,
-          type: 'v4'
-        }
-      }
+      variables: { input: { appId: appName, type: 'v4' } }
     });
     const ipv4 = v4resp.data.data.allocateIpAddress.ipAddress.address;
     console.log('Allocated IPv4:', ipv4);
 
-    // GraphQL で IPv6 を割り当て
     console.log('Allocating IPv6 via GraphQL API');
     const v6resp = await gqlClient.post('', {
       query: ALLOCATE_IP_MUTATION,
-      variables: {
-        input: {
-          appId: appName,
-          type: 'v6'
-        }
-      }
+      variables: { input: { appId: appName, type: 'v6' } }
     });
     const ipv6 = v6resp.data.data.allocateIpAddress.ipAddress.address;
     console.log('Allocated IPv6:', ipv6);
 
-    console.log('Deployment successful:', appName);
     return res.json({
       status: 'created',
       app: appName,
@@ -182,5 +176,51 @@ app.post('/deploy', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3006;
-app.listen(PORT, '0.0.0.0', () => console.log(`Listening on port ${PORT}`));
+// Upload notebook to S3 for an existing app
+app.post('/:appName/upload', async (req, res) => {
+  const { appName } = req.params;
+  const { notebookName, fileContentBase64 } = req.body;
+
+  if (!notebookName || !fileContentBase64) {
+    return res.status(400).json({ error: 'notebookName and fileContentBase64 are required' });
+  }
+
+  try {
+    const buffer = Buffer.from(fileContentBase64, 'base64');
+    const key = `${appName}/notebooks/${notebookName}`;
+
+    console.log(`Uploading notebook to: s3://${COMMON_BUCKET}/${key}`);
+    await s3.putObject({
+      Bucket: COMMON_BUCKET,
+      Key: key,
+      Body: buffer,
+      ContentType: 'application/json'
+    }).promise();
+
+    return res.json({ status: 'uploaded', app: appName, key });
+  } catch (err) {
+    console.error('Notebook upload error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete a Fly app
+app.post('/:appName/delete', async (req, res) => {
+  const { appName } = req.params;
+
+  try {
+    const fly = createFlyClient();
+    console.log('Destroying Fly app:', appName);
+    await fly.delete(`/apps/${appName}`);
+
+    return res.json({ status: 'deleted', app: appName });
+  } catch (err) {
+    console.error('App deletion error:', err.response?.data || err.message);
+    return res.status(500).json({ error: err.response?.data || err.message });
+  }
+});
+
+const LISTEN_PORT = process.env.PORT || 3006;
+app.listen(LISTEN_PORT, '0.0.0.0', () => {
+  console.log(`Deployment service listening on port ${LISTEN_PORT}`);
+});

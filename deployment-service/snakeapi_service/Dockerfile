@@ -1,15 +1,28 @@
 FROM python:3.11-slim
 WORKDIR /app
 
-RUN pip install --no-cache-dir jupyter flask awscli flask_cors nbconvert nbformat
+# disable Python output buffering
+ENV PYTHONUNBUFFERED=1
+# wrapper server port
+ENV PORT=8000
+# notebook server port
+ENV NOTEBOOK_PORT=3006
+
+RUN pip install --no-cache-dir \
+    flask \
+    flask-cors \
+    awscli \
+    jupyter \
+    nbconvert \
+    nbformat \
+    requests
 
 COPY entrypoint.sh .
-COPY notebooks ./notebooks
 COPY snakeapi_server.py .
+COPY notebooks ./notebooks
 
 RUN chmod +x entrypoint.sh
 
-ENV PORT=3006
-EXPOSE 3006
+EXPOSE ${PORT} ${NOTEBOOK_PORT}
 
 CMD ["./entrypoint.sh"]
