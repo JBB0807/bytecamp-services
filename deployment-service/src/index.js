@@ -72,7 +72,7 @@ app.use(express.json({ limit: '10mb' }));
 
 app.post('/deploy', async (req, res) => {
   console.log('Received /deploy:', req.body);
-  const { appName, region = 'sea', notebookName } = req.body;
+  const { appName, region, notebookName } = req.body;
   if (!appName || !notebookName) {
     return res.status(400).json({ error: 'appName and notebookName required' });
   }
@@ -108,7 +108,7 @@ app.post('/deploy', async (req, res) => {
     console.log('Creating machine');
     const machineConfig = {
       name: `${appName}-machine`,
-      region: region,
+      region: 'sea',
       count: 1,
       vm_size: 'shared-cpu-1x',
       autostart: true,
@@ -140,7 +140,12 @@ app.post('/deploy', async (req, res) => {
               { port: 80,  handlers: ['http'] }
             ]
           }
-        ]
+        ],
+        guest: {
+          memory_mb: 512,
+          cpu_kind: 'shared',
+          cpus: 1
+        }
       }
     };
     console.log('Machine config:', JSON.stringify(machineConfig, null, 2));
