@@ -102,7 +102,7 @@ app.post('/machines/get', async (req, res) => {
 // Endpoint to upload files to Google Drive
 app.post('/drive/upload', upload.fields([{ name: 'pythonFile' }, { name: 'jsonFile', maxCount: 1 }]), async (req, res) => {
   const { folderLink } = req.body;
-  const { pythonFile, jsonFile } = req.files;
+    const { pythonFile, jsonFile } = req.files;
 
   if (!folderLink || !pythonFile) {
     return res.status(400).json({ error: 'Folder link and Python file are required' });

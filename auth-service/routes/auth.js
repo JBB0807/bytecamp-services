@@ -52,6 +52,16 @@ router.get("/login/failed", (req, res) => {
 
 router.get("/google", passport.authenticate("google", ["profile", "email"]));
 
+router.post("/student/login", (req, res) => {
+  passport.authenticate("student-auth"),
+    (req, res) => {
+      res.json({
+        message: "Authenticated via external service",
+        user: req.user,
+      });
+    };
+});
+
 router.get("/logout", (req, res) => {
   req.logOut();
   res.redirect(process.env.LOGIN_REDIRECT_URL);
