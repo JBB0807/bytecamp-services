@@ -3,6 +3,7 @@ require("dotenv").config();
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const passport = require("passport");
 const CustomStrategy = require("passport-custom").Strategy;
+const axios = require("axios");
 
 passport.use(
   new GoogleStrategy(
@@ -13,7 +14,7 @@ passport.use(
       scope: ["profile", "email"],
     },
     function (accessToken, refreshToken, profile, callback) {
-      callback(null, profile);
+      callback(null, {...profile, role: "instructor"});
     }
   )
 );
@@ -21,31 +22,56 @@ passport.use(
 passport.use(
   "student-auth",
   new CustomStrategy(async (req, done) => {
-    const { assignment, password } = req.body;
+    const { assignmentId, password } = req.body;
+
+    console.log("Custom strategy invoked");
+    console.log("Received assignmentId:", assignmentId);
+    console.log("Received password:", password);
 
     try {
-      // Call your external auth service
-      const response = await axios.post("http://localhost:8082/student/verify", {
-        assignment,
-        password,
-      });
+      console.log("Sending request to external auth service...");
+      const response = await axios.post(
+        "http://localhost:8082/student/verify",
+        {
+          assignmentId,
+          password,
+        }
+      );
 
-      if (response.data && response.data.success) {
-        const user = response.data.user;
+      if (response.status === 200 && response.data) {
+        user = {
+          ...response.data,
+          role: "student",
+        };
+        console.log("Authentication successful, user:", user);
         return done(null, user); // success
       } else {
+        console.log("Authentication failed: Invalid credentials");
         return done(null, false, { message: "Invalid credentials" });
       }
     } catch (err) {
+      console.error("Error during authentication:", err);
       return done(err);
     }
   })
 );
 
 passport.serializeUser((user, done) => {
-  done(null, user);
+  // done(null, user);
+  console.log("Serializing user:", user);
+  done(null, {
+    id: user.assignmentid || user.emal,
+    displayName: user.studentname || user.displayName,
+    role: user.role,
+  });
 });
 
-passport.deserializeUser((user, done) => {
-  done(null, user);
+passport.deserializeUser(async (user, done) => {
+  try {
+    console.log("Deserializing user:", user);
+    done(null, user);
+  } catch (err) {
+    console.error("Error during deserialization:", err);
+    done(err);
+  }
 });

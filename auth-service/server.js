@@ -6,10 +6,14 @@ const passport = require("passport");
 const passportSetup = require("./passport");
 const authRoute = require("./routes/auth");
 const session = require("express-session");
+const bodyParser = require("body-parser");
 
 const app = express();
+app.use(bodyParser.json()); // or express.json()
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(
+
     session({
         secret: process.env.AUTH_SESSION_KEY,
         resave: false,
@@ -30,6 +34,9 @@ app.use(
         credentials: true,
     })
 )
+
+
+app.use(express.json());
 
 app.use("/auth", authRoute);
 

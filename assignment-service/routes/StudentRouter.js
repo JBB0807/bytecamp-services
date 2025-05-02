@@ -10,10 +10,12 @@ studentRouter.post("/save", (req, res) => {});
 
 studentRouter.post("/deploy", (req, res) => {});
 
-studentRouter.post("/verify/", async (req, res) => {
+studentRouter.post("/verify", async (req, res) => {
   try {
-    const assignmentId = req.body.id;
+    const assignmentId = req.body.assignmentId;
     const password = req.body.password;
+    console.log("Received request to verify assignment.");
+    console.log("Request body:", req.body);
     console.log(
       "Accessing assignment with ID:",
       assignmentId,
@@ -35,13 +37,18 @@ studentRouter.post("/verify/", async (req, res) => {
       response.data.passwordhash
     );
 
+    console.log("Password validation result:", isPasswordValid);
+
     if (!isPasswordValid || !response.data) {
+      console.log("Invalid id or password.");
       return res.status(401).json({ error: "Invalid id and password" });
     }
 
+    console.log("Verification successful. Sending response.");
     res.status(response.status).json(response.data);
   } catch (error) {
     console.error("Error fetching assignment details:", error.message);
+    console.error("Error details:", error);
     res.status(error.response?.status || 500).json({ error: error.message });
   }
 });
