@@ -31,7 +31,7 @@ passport.use(
     try {
       console.log("Sending request to external auth service...");
       const response = await axios.post(
-        "http://localhost:8082/student/verify",
+        `${process.env.ASSIGNMENT_SERVICE_URL}/student/verify`,
         {
           assignmentId,
           password,

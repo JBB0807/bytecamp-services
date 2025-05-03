@@ -39,5 +39,5 @@ app.use(cors());
 app.use("/instructor", instructorRouter);
 app.use("/student", studentRouter);
 
-const port = process.env.PORT || 8080;
+const port = process.env.NODE_PORT || 8080;
 app.listen(port, () => console.log(`Listening on port ${port}...`));
