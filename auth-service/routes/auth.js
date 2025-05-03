@@ -73,7 +73,7 @@ router.post(
       
         console.log('is authenticated?: ' + req.isAuthenticated());
       
-        return res.json({
+        return res.status(200).json({
           success: true,
           message: 'Successful Login',
           user: req.user
