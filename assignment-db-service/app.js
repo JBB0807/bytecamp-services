@@ -33,8 +33,9 @@ async function convertToAssignment(req) {
     programid,
     studentname,
     snakegameid,
-    originalfile,
-    editablefile,
+    appname,
+    qrcodenumber,
+    description,
     assignmenturl,
     password,
     instructorid
@@ -43,15 +44,18 @@ async function convertToAssignment(req) {
   const hashPassword = await encryptPassword(req.body.password);
 
     return {
-      campid: campid,
-      programid: programid,
+      campid: parseInt(campid),
+      programid: parseInt(programid),
       studentname: studentname,
       snakegameid: snakegameid,
-      originalfile: originalfile,
-      editablefile: editablefile,
+      appname: appname,
+      qrcodenumber: parseInt(qrcodenumber),
+      description: description,
+      // originalfile: originalfile,
+      // editablefile: editablefile,
       assignmenturl: assignmenturl,
       passwordhash: hashPassword,
-      instructorid: instructorid,
+      instructorid: parseInt(instructorid),
     };
   }
 
