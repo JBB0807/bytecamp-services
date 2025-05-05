@@ -10,6 +10,21 @@ studentRouter.post("/save", (req, res) => {});
 
 studentRouter.post("/deploy", (req, res) => {});
 
+studentRouter.get("/assignment/:id", (req, res) => {
+  const assignmentId = req.params.id;
+  console.log("Fetching details for assignmentId:", assignmentId);
+  axios
+    .get(`${DB_ASSIGNMENT_SERVICE_URL}/assignments/${assignmentId}`)
+    .then((response) => {
+      console.log("Response from DB_ASSIGNMENT_SERVICE_URL:", response.data);
+      res.status(response.status).json(response.data);
+    })
+    .catch((error) => {
+      console.error("Error fetching assignment details:", error.message);
+      res.status(error.response?.status || 500).json({ error: error.message });
+    });
+});
+
 studentRouter.post("/verify", async (req, res) => {
   try {
     const assignmentId = req.body.assignmentId;

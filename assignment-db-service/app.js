@@ -43,15 +43,15 @@ async function convertToAssignment(req) {
   const hashPassword = await encryptPassword(req.body.password);
 
     return {
-      campid: campid,
-      programid: programid,
+      campid: parseInt(campid),
+      programid: parseInt(programid),
       studentname: studentname,
       snakegameid: snakegameid,
       originalfile: originalfile,
       editablefile: editablefile,
       assignmenturl: assignmenturl,
       passwordhash: hashPassword,
-      instructorid: instructorid,
+      instructorid: parseInt(instructorid),
     };
   }
 
