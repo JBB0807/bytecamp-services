@@ -6,11 +6,6 @@ primary_region = "sea"
 [build]
 # Only needed if you're using a Dockerfile — can be empty if using buildpacks or Node preset
 
-#[env]
-  #NODE_ENV = "production"
-  #DATABASE_URL = "postgresql://user:password@hostname:port/dbname"
-  # you can also leave DATABASE_URL unset here and use secrets instead
-
 # Removed the [http_service] section to disable public HTTP/HTTPS access
 # [http_service]
 #   internal_port = 3000
@@ -24,6 +19,8 @@ primary_region = "sea"
   protocol = "tcp"
   internal_port = 3000
   internal_only = true  # Makes this service only accessible internally
+  auto_start_machines = true
+  auto_stop_machines = true
 
   # Removed public port exposure
   # [[services.ports]]

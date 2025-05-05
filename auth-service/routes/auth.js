@@ -11,6 +11,8 @@ router.get(
 );
 
 router.get("/current_user", (req, res) => {
+  console.log("Current user endpoint hit");
+  console.log("Request user:", req.user);
   if (req.isAuthenticated()) {
     console.log("Authenticated user:", req.user);
     res.json(req.user);
@@ -52,9 +54,47 @@ router.get("/login/failed", (req, res) => {
 
 router.get("/google", passport.authenticate("google", ["profile", "email"]));
 
+router.post(
+  "/student/login",
+  passport.authenticate("student-auth"),
+  (req, res) => {
+    console.log("Student login endpoint hit");
+
+    if (req.user) {
+      console.log("Authenticated user:", req.user);
+      console.log("Processing student login...");
+
+      // Optional: augment user object (doesn't affect session unless you reserialize)
+      req.user.userId = req.user.assignmentid;
+      req.user.role = "student";
+
+      req.logIn(req.user, function(err) {
+        if (err) return next(err);
+      
+        console.log('is authenticated?: ' + req.isAuthenticated());
+      
+        return res.status(200).json({
+          success: true,
+          message: 'Successful Login',
+          user: req.user
+        });
+      });
+
+    } else {
+      console.log("Authentication failed");
+      res.status(401).json({ error: true, message: "Authentication failed" });
+    }
+  }
+);
+
 router.get("/logout", (req, res) => {
-  req.logOut();
-  res.redirect(process.env.LOGIN_REDIRECT_URL);
+
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+    res.redirect(process.env.LOGIN_REDIRECT_URL);
+  });
 });
 
 module.exports = router;

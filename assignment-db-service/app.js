@@ -10,8 +10,24 @@ const port = process.env.NODE_PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+async function encryptPassword(password) {
+  if (!password) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    bcrypt.hash(password, 10, (err, hash) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(hash);
+      }
+    });
+  });
+}
+
 //function to conver req.body to assignment
-function convertToAssignment(req) {
+async function convertToAssignment(req) {
   const {
     campid,
     programid,
@@ -24,7 +40,8 @@ function convertToAssignment(req) {
     instructorid
   } = req.body;
 
-  // const hashedPassword = await bcrypt.hash(Password, 10);
+  const hashPassword = await encryptPassword(req.body.password);
+
     return {
       campid: campid,
       programid: programid,
@@ -33,8 +50,7 @@ function convertToAssignment(req) {
       originalfile: originalfile,
       editablefile: editablefile,
       assignmenturl: assignmenturl,
-      // passwordhash: hashedpassword,
-      passwordhash: password,
+      passwordhash: hashPassword,
       instructorid: instructorid,
     };
   }
@@ -44,25 +60,11 @@ app.post("/assignments", async (req, res) => {
   try {
     console.log("Request body:", req.body);
 
-    // const {
-    //   campid,
-    //   programid,
-    //   studentname,
-    //   snakegameid,
-    //   originalfile,
-    //   editablefile,
-    //   assignmenturl,
-    //   password,
-    //   instructorid
-    // } = req.body;
-
-    // const hashedPassword = await bcrypt.hash(Password, 10);
+    const assignment = await convertToAssignment(req);
     const newAssignment = await prisma.assignments.create({
-      data: {
-        ...convertToAssignment(req)
-      },
+      data: assignment,
     });
-
+  
     console.log("Assignment created successfully:", newAssignment);
 
     res.json({
@@ -119,17 +121,11 @@ app.get("/assignments/:id", async (req, res) => {
 app.put("/assignments/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const data = req.body;
-
-    if (data.password) {
-      // data.passwordhash = await bcrypt.hash(data.Password, 10);
-      data.passwordhash = data.password;
-      delete data.password;
-    }
+    const assignment = await convertToAssignment(req);
 
     const updatedAssignment = await prisma.assignments.update({
       where: { assignmentid: parseInt(id) },
-      data,
+      data: assignment,
     });
 
     res.json({
