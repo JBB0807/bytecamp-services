@@ -1,23 +1,44 @@
 const intructorRouter = require("express").Router();
 const passport = require("passport");
 const axios = require("axios");
+const multer = require('multer');
+const FormData = require('form-data');
+
 
 const DB_ASSIGNMENT_SERVICE_URL =
   process.env.DB_ASSIGNMENT_SERVICE_URL || "http://localhost:3000";
 console.log("DB_ASSIGNMENT_SERVICE_URL:", DB_ASSIGNMENT_SERVICE_URL);
 
+// Use memory storage to keep file in RAM
+const upload = multer({ storage: multer.memoryStorage() });
+
+
 // This endpoint is for instructors to create a new assignment
-intructorRouter.post(
-  "/create",
-  // passport.authenticate("jwt", { session: false }),
+intructorRouter.post("/create", 
+  upload.single('file'),
+  // passport.authenticate("jwt", { session: false }), 
   async (req, res) => {
     try {
+    
+      const file = req.file;
+      const assignmentData = req.body;
+
+      if (!file) {
+        return res.status(400).send('No file uploaded.');
+      }
+
+      await axios.post('https://target-api.com/endpoint', {
+        filename: file.originalname,
+        mimetype: file.mimetype,
+        content: file.buffer.toString('base64')
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
 
       console.log("Creating a new assignment with data:", req.body);
-      const response = await axios.post(
-        `${DB_ASSIGNMENT_SERVICE_URL}/assignments`,
-        req.body
-      );
+      const response = await axios.post(`${DB_ASSIGNMENT_SERVICE_URL}/assignments`, req.body);
       console.log("Response from DB_ASSIGNMENT_SERVICE_URL:", response.data);
       res.status(response.status).json(response.data);
     } catch (error) {
