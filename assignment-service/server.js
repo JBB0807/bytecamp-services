@@ -11,6 +11,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Allow all origins (not recommended for production)
+app.use(cors());
 
 // app.use(
 //     session({
