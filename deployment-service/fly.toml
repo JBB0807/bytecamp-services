@@ -2,7 +2,7 @@ app = 'deployment-service-test'
 primary_region = 'sea'
 
 [build]
-dockerfile = "Dockerfile"
+  dockerfile = "Dockerfile"
 
 [env]
   FLY_ORG="personal"
@@ -14,6 +14,9 @@ dockerfile = "Dockerfile"
   IMAGE_REF="registry.fly.io/snake-api-template:latest"
   FLY_API_BASE_URL = "https://api.machines.dev/v1"
 
+[services]
+  internal_only = true  
+
 [http_service]
-internal_port = 3006
-force_https = true
+  internal_port = 3006
+  force_https = true
