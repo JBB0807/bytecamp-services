@@ -11,7 +11,6 @@ RUN pip install --no-cache-dir jupyter
 COPY notebook.ipynb /app/
 
 # Expose port 8000
-ENV PORT=3006
 EXPOSE 8000
 
 # Command to execute the notebook directly
