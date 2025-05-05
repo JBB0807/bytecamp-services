@@ -1,0 +1,19 @@
+app = 'deployment-service-test'
+primary_region = 'sea'
+
+[build]
+dockerfile = "Dockerfile"
+
+[env]
+  FLY_ORG="personal"
+  COMMON_BUCKET="snakeapi-deployment-test-bucket"
+  AWS_ACCESS_KEY_ID="tid__NSmOVaGknqitaCySppZjqVTgJSdDFnFbWcQllkC_juHwkbQZO"
+  AWS_SECRET_ACCESS_KEY="tsec_6Bz1aMbfYQftuq5WfIVEDZkHwskU4MMjVywdtxSP6uxetEBvkSC2VHI9HfTeDgHr4D6kiz"
+  AWS_ENDPOINT_URL_S3="https://fly.storage.tigris.dev"
+  AWS_REGION="auto"
+  IMAGE_REF="registry.fly.io/snake-api-template:latest"
+  FLY_API_BASE_URL = "https://api.machines.dev/v1"
+
+[http_service]
+internal_port = 3006
+force_https = true

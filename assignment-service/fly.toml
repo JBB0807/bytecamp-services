@@ -10,13 +10,20 @@ primary_region = 'sea'
 
 [env]
   PORT = '8080'
+  FLY_ORG="personal"
+  COMMON_BUCKET="snakeapi-deployment-test-bucket"
+  AWS_ACCESS_KEY_ID="tid__NSmOVaGknqitaCySppZjqVTgJSdDFnFbWcQllkC_juHwkbQZO"
+  AWS_SECRET_ACCESS_KEY="tsec_6Bz1aMbfYQftuq5WfIVEDZkHwskU4MMjVywdtxSP6uxetEBvkSC2VHI9HfTeDgHr4D6kiz"
+  AWS_ENDPOINT_URL_S3="https://fly.storage.tigris.dev"
+  AWS_REGION="auto"
+  FLY_API_BASE_URL = "https://api.machines.dev/v1"
 
 [http_service]
   internal_port = 8080
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
   processes = ['app']
 
 [[services]]
