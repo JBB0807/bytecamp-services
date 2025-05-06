@@ -49,7 +49,7 @@ studentRouter.post("/verify", async (req, res) => {
 
     const isPasswordValid = await bcrypt.compare(
       password,
-      response.data[0].passwordhash
+      response.data[0].passwordhash 
     );
 
     console.log("Password validation result:", isPasswordValid);
