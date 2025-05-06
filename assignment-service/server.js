@@ -71,4 +71,4 @@ app.get("/notebook/:appName", async (req, res) => {
 });
 
 const port = process.env.NODE_PORT || 8080;
-app.listen(port, "0.0.0.0", () => console.log(`Listening on 0.0.0.0:${port}...`));
+app.listen(port, "::", () => console.log(`Listening on :::${port}...`));

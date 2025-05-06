@@ -10,11 +10,11 @@ studentRouter.post("/save", (req, res) => {});
 
 studentRouter.post("/deploy", (req, res) => {});
 
-studentRouter.get("/assignment/:id", (req, res) => {
-  const assignmentId = req.params.id;
-  console.log("Fetching details for assignmentId:", assignmentId);
+studentRouter.get("/assignment/:qrnum", (req, res) => {
+  const qrnum = req.params.qrnum;
+  console.log("Fetching details for qr number:", qrnum);
   axios
-    .get(`${DB_ASSIGNMENT_SERVICE_URL}/assignments/${assignmentId}`)
+    .get(`${DB_ASSIGNMENT_SERVICE_URL}/assignments/${qrnum}`)
     .then((response) => {
       console.log("Response from DB_ASSIGNMENT_SERVICE_URL:", response.data);
       res.status(response.status).json(response.data);
@@ -27,20 +27,20 @@ studentRouter.get("/assignment/:id", (req, res) => {
 
 studentRouter.post("/verify", async (req, res) => {
   try {
-    const assignmentId = req.body.assignmentId;
+    const qrNumber = req.body.qrNumber;
     const password = req.body.password;
     console.log("Received request to verify assignment.");
     console.log("Request body:", req.body);
     console.log(
-      "Accessing assignment with ID:",
-      assignmentId,
+      "Accessing assignment with QR Number:",
+      qrNumber,
       "and password:",
       password
     );
 
-    console.log(`Fetching from URL: ${DB_ASSIGNMENT_SERVICE_URL}/assignments/${assignmentId}`);
+    console.log(`Fetching from URL: ${DB_ASSIGNMENT_SERVICE_URL}/assignments/${qrNumber}`);
     const response = await axios.get(
-      `${DB_ASSIGNMENT_SERVICE_URL}/assignments/${assignmentId}`
+      `${DB_ASSIGNMENT_SERVICE_URL}/assignments/${qrNumber}`
     );
 
     console.log("Response from DB_ASSIGNMENT_SERVICE_URL:", response.data);

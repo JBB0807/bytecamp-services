@@ -22,10 +22,10 @@ passport.use(
 passport.use(
   "student-auth",
   new CustomStrategy(async (req, done) => {
-    const { assignmentId, password } = req.body;
+    const { qrNumber, password } = req.body;
 
     console.log("Custom strategy invoked");
-    console.log("Received assignmentId:", assignmentId);
+    console.log("Received qrNumber:", qrNumber);
     console.log("Received password:", password);
 
     try {
@@ -33,7 +33,7 @@ passport.use(
       const response = await axios.post(
         `${process.env.ASSIGNMENT_SERVICE_URL}/student/verify`,
         {
-          assignmentId,
+          qrNumber,
           password,
         }
       );

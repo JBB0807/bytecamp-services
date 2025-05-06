@@ -104,10 +104,10 @@ app.get("/assignments/instructor/:instructorId", async (req, res) => {
 });
 
 // Read Assignment
-app.get("/assignments/:id", async (req, res) => {
+app.get("/assignments/:qrNumber", async (req, res) => {
   try {
     const assignment = await prisma.assignments.findUnique({
-      where: { assignmentid: parseInt(req.params.id) },
+      where: { qrcodenumber: parseInt(req.params.qrNumber) },
     });
 
     if (!assignment) {
