@@ -122,8 +122,31 @@ app.get("/assignments/instructor/:instructorId", async (req, res) => {
   }
 });
 
-// Read Assignment
-app.get("/assignments/:qrNumber", async (req, res) => {
+//Get assignment by assignmentid
+app.get("/assignments/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log("Fetching assignment with ID:", id);
+
+    const assignment = await prisma.assignments.findUnique({
+      where: { assignmentid: parseInt(id) },
+    });
+
+    if (!assignment) {
+      console.log("No assignment found for ID:", id);
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    console.log("Assignment found:", assignment);
+    res.json(assignment);
+  } catch (err) {
+    console.error("Error fetching assignment:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get Assignment by QR Code Number
+app.get("/assignments/qr/:qrNumber", async (req, res) => {
   try {
     console.log("Fetching assignment with QR Code Number:", req.params.qrNumber);
 
@@ -222,3 +245,4 @@ app.delete("/assignments/:id", async (req, res) => {
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+

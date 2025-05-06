@@ -14,7 +14,7 @@ studentRouter.get("/assignment/:qrnum", (req, res) => {
   const qrnum = req.params.qrnum;
   console.log("Fetching details for qr number:", qrnum);
   axios
-    .get(`${DB_ASSIGNMENT_SERVICE_URL}/assignments/${qrnum}`)
+    .get(`${DB_ASSIGNMENT_SERVICE_URL}/assignments/qr/${qrnum}`)
     .then((response) => {
       console.log("Response from DB_ASSIGNMENT_SERVICE_URL:", response.data);
       res.status(response.status).json(response.data);
@@ -40,7 +40,7 @@ studentRouter.post("/verify", async (req, res) => {
 
     console.log(`Fetching from URL: ${DB_ASSIGNMENT_SERVICE_URL}/assignments/${qrNumber}`);
     const response = await axios.get(
-      `${DB_ASSIGNMENT_SERVICE_URL}/assignments/${qrNumber}`
+      `${DB_ASSIGNMENT_SERVICE_URL}/assignments/qr/${qrNumber}`
     );
 
     console.log("Response from DB_ASSIGNMENT_SERVICE_URL:", response.data);

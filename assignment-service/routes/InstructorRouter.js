@@ -132,7 +132,33 @@ intructorRouter.delete(
   // passport.authenticate("jwt", { session: false }),
   async (req, res) => {
     try {
+
       const assignmentId = req.params.id;
+
+      //get the assignment data from the database
+      console.log("Fetching assignment data for ID:", assignmentId);
+      const assignmentResponse = await axios.get(
+        `${DB_ASSIGNMENT_SERVICE_URL}/assignments/${assignmentId}`
+      );
+      const assignmentData = assignmentResponse.data;
+      console.log("Assignment data:", assignmentData);
+
+      if (!assignmentData) {
+        return res.status(404).json({ error: "Assignment not found" });
+      } 
+
+      // Delete the Battlesnake API
+      console.log('Deploying a new Battlesnake API');
+      console.log("DEPLOY_API_URL:", DEPLOY_API_URL, assignmentData.appname);
+      const deployResponse = await axios.post(`${DEPLOY_API_URL}/${assignmentData.appname}/delete`, {
+        "appName": assignmentData.appname
+      });
+      //throw error if the response is not 200
+      if (deployResponse.status !== 200) {
+        throw new Error(`Failed to delete Battlesnake API: ${deployResponse.statusText}`);
+      }
+      console.log('Response from DEPLOY_API_URL:', deployResponse.data);
+
       const response = await axios.delete(
         `${DB_ASSIGNMENT_SERVICE_URL}/assignments/${assignmentId}`
       );
