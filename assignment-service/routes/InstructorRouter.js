@@ -154,8 +154,8 @@ intructorRouter.get(
       const response = await axios.get(
         `${DB_ASSIGNMENT_SERVICE_URL}/assignments/appname/${appName}`
       );
-      console.log("exists:", response.data.length > 0);
-      res.status(response.status).json({"exists": response.data.length > 0});
+      console.log("Response data:", response.data);
+      res.status(response.status).json({"exists": (response.data !== null && response.data !== undefined)});
     } catch (error) {
       console.error("Error fetching assignment by app name:", error.message);
       res.status(error.response?.status || 500).json({ error: error.message });
@@ -174,9 +174,8 @@ intructorRouter.get(
       const response = await axios.get(
         `${DB_ASSIGNMENT_SERVICE_URL}/assignments/${qrcode}`
       );
-      console.log("response:", response.data); 
-      console.log("exists:", response.data.length > 0);
-      res.status(response.status).json({"exists": response.data.length > 0});
+      console.log("Response data:", response.data);
+      res.status(response.status).json({"exists": (response.data !== null && response.data !== undefined)});
     } catch (error) {
       console.error("Error fetching assignment by QR code:", error.message);
       res.status(error.response?.status || 500).json({ error: error.message });

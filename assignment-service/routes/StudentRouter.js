@@ -45,11 +45,11 @@ studentRouter.post("/verify", async (req, res) => {
 
     console.log("Response from DB_ASSIGNMENT_SERVICE_URL:", response.data);
     console.log("Password provided:", password);
-    console.log("Password hash from database:", response.data[0].passwordhash);
+    console.log("Password hash from database:", response.data.passwordhash);
 
     const isPasswordValid = await bcrypt.compare(
       password,
-      response.data[0].passwordhash 
+      response.data.passwordhash 
     );
 
     console.log("Password validation result:", isPasswordValid);
