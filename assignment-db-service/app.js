@@ -28,6 +28,7 @@ async function encryptPassword(password) {
 
 //function to conver req.body to assignment
 async function convertToAssignment(req) {
+  console.log("Converting request body to assignment object...");
   const {
     campid,
     programid,
@@ -41,22 +42,39 @@ async function convertToAssignment(req) {
     instructorid
   } = req.body;
 
+  console.log("Request body fields:", {
+    campid,
+    programid,
+    studentname,
+    snakegameid,
+    appname,
+    qrcodenumber,
+    description,
+    assignmenturl,
+    password,
+    instructorid
+  });
+
   const hashPassword = await encryptPassword(req.body.password);
 
-    return {
-      campid: parseInt(campid),
-      programid: parseInt(programid),
-      studentname: studentname,
-      snakegameid: snakegameid,
-      appname: appname,
-      qrcodenumber: parseInt(qrcodenumber),
-      description: description,
-      // originalfile: originalfile,
-      // editablefile: editablefile,
-      assignmenturl: assignmenturl,
-      passwordhash: hashPassword,
-      instructorid: parseInt(instructorid),
-    };
+  console.log("Password hash generated:", hashPassword);
+
+  const assignment = {
+    campid: campid ? parseInt(campid) : null,
+    programid: programid ? parseInt(programid) : null,
+    studentname: studentname || null,
+    snakegameid: snakegameid || null,
+    appname: appname || null,
+    qrcodenumber: qrcodenumber ? parseInt(qrcodenumber) : null,
+    description: description || null,
+    assignmenturl: assignmenturl || null,
+    passwordhash: hashPassword || null,
+    instructorid: instructorid ? parseInt(instructorid) : null,
+  };
+
+  console.log("Converted assignment object:", assignment);
+
+  return assignment;
   }
 
 // Create Assignment
@@ -88,6 +106,7 @@ app.get("/assignments/instructor/:instructorId", async (req, res) => {
     console.log("InstructorID:", instructorId);
     const assignments = await prisma.assignments.findMany({
       where: { instructorid: parseInt(instructorId) },
+      orderBy: { assignmentid: 'asc' },
     });
 
     if (assignments.length === 0) {
@@ -103,17 +122,65 @@ app.get("/assignments/instructor/:instructorId", async (req, res) => {
   }
 });
 
-// Read Assignment
-app.get("/assignments/:qrNumber", async (req, res) => {
+//Get assignment by assignmentid
+app.get("/assignments/:id", async (req, res) => {
   try {
+    const { id } = req.params;
+    console.log("Fetching assignment with ID:", id);
+
+    const assignment = await prisma.assignments.findUnique({
+      where: { assignmentid: parseInt(id) },
+    });
+
+    if (!assignment) {
+      console.log("No assignment found for ID:", id);
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    console.log("Assignment found:", assignment);
+    res.json(assignment);
+  } catch (err) {
+    console.error("Error fetching assignment:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get Assignment by QR Code Number
+app.get("/assignments/qr/:qrNumber", async (req, res) => {
+  try {
+    console.log("Fetching assignment with QR Code Number:", req.params.qrNumber);
+
     const assignment = await prisma.assignments.findUnique({
       where: { qrcodenumber: parseInt(req.params.qrNumber) },
     });
 
     if (!assignment) {
+      console.log("No assignment found for QR Code Number:", req.params.qrNumber);
       return res.status(404).json({ message: "Assignment not found" });
     }
 
+    console.log("Assignment found:", assignment);
+    res.json(assignment);
+  } catch (err) {
+    console.error("Error fetching assignment:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+//get assignment by appname
+app.get("/assignments/appname/:appName", async (req, res) => {
+  try {
+    const { appName } = req.params;
+    const assignment = await prisma.assignments.findUnique({
+      where: { appname: appName },
+    });
+
+    if (!assignment) {
+      console.log("No assignment found for app name:", req.params.qrNumber);
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    console.log("Assignment found:", assignment);
     res.json(assignment);
   } catch (err) {
     console.error("Error fetching assignment:", err.message);
@@ -127,9 +194,26 @@ app.put("/assignments/:id", async (req, res) => {
     const { id } = req.params;
     const assignment = await convertToAssignment(req);
 
+    const existingAssignment = await prisma.assignments.findUnique({
+      where: { assignmentid: parseInt(id) },
+    });
+
+    if (!existingAssignment) {
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    // Update only the fields that are provided in the request body
+    Object.keys(assignment).forEach((key) => {
+      if (assignment[key]) {
+        existingAssignment[key] = assignment[key];
+      }
+    });
+
+    console.log("Existing Assignment before update:", existingAssignment);
+
     const updatedAssignment = await prisma.assignments.update({
       where: { assignmentid: parseInt(id) },
-      data: assignment,
+      data: existingAssignment,
     });
 
     res.json({
@@ -161,3 +245,4 @@ app.delete("/assignments/:id", async (req, res) => {
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
