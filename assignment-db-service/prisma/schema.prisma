@@ -14,8 +14,8 @@ model assignments {
   programid      Int?
   studentname    String?
   snakegameid    String?
-  qrcodenumber   Int     @unique
-  appname        String  @unique
+  qrcodenumber   Int?     @unique
+  appname        String?  @unique
   description    String?
   passwordhash   String?  // store bcrypt hash
   assignmenturl  String?
