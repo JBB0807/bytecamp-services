@@ -125,14 +125,18 @@ app.get("/assignments/instructor/:instructorId", async (req, res) => {
 // Read Assignment
 app.get("/assignments/:qrNumber", async (req, res) => {
   try {
-    const assignment = await prisma.assignments.findUnique({
+    console.log("Fetching assignment with QR Code Number:", req.params.qrNumber);
+
+    const assignment = await prisma.assignments.findMany({
       where: { qrcodenumber: parseInt(req.params.qrNumber) },
     });
 
     if (!assignment) {
+      console.log("No assignment found for QR Code Number:", req.params.qrNumber);
       return res.status(404).json({ message: "Assignment not found" });
     }
 
+    console.log("Assignment found:", assignment);
     res.json(assignment);
   } catch (err) {
     console.error("Error fetching assignment:", err.message);

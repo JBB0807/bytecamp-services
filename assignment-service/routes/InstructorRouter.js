@@ -143,4 +143,45 @@ intructorRouter.delete(
   }
 );
 
+//get assignment by appname
+intructorRouter.get(
+  "/checkAssignmentByAppName/:appName",
+  // passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    try {
+      const appName = req.params.appName;
+      console.log("Fetching assignment for appName:", appName);
+      const response = await axios.get(
+        `${DB_ASSIGNMENT_SERVICE_URL}/assignments/appname/${appName}`
+      );
+      console.log("exists:", response.data.length > 0);
+      res.status(response.status).json({"exists": response.data.length > 0});
+    } catch (error) {
+      console.error("Error fetching assignment by app name:", error.message);
+      res.status(error.response?.status || 500).json({ error: error.message });
+    }
+  }
+);
+
+//get assignment by qrcode number
+intructorRouter.get(
+  "/checkAssignmentByQRCode/:qrcode",
+  // passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    try {
+      const qrcode = req.params.qrcode;
+      console.log("Fetching assignment for qrcode:", qrcode);
+      const response = await axios.get(
+        `${DB_ASSIGNMENT_SERVICE_URL}/assignments/${qrcode}`
+      );
+      console.log("response:", response.data); 
+      console.log("exists:", response.data.length > 0);
+      res.status(response.status).json({"exists": response.data.length > 0});
+    } catch (error) {
+      console.error("Error fetching assignment by QR code:", error.message);
+      res.status(error.response?.status || 500).json({ error: error.message });
+    }
+  }
+);
+
 module.exports = intructorRouter;
