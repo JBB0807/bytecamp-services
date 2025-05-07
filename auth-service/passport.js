@@ -66,7 +66,7 @@ passport.serializeUser((user, done) => {
   console.log("Serializing user:", user);
   // done(null, user);
   done(null, {
-    userId: user.qrcodenumber || user.id,
+    userId: user.qrcodenumber || user.userId,
     displayName: user.studentname || user.displayName,
     role: user.role,
     // emails: user.emails || "none",
