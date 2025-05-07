@@ -4,9 +4,63 @@ const axios = require("axios");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 const DB_ASSIGNMENT_SERVICE_URL = process.env.DB_ASSIGNMENT_SERVICE_URL;
+const DEPLOY_API_URL = process.env.DEPLOY_API_URL || "http://localhost:3600";
 
 
-studentRouter.post("/save", (req, res) => {});
+studentRouter.post("/save", async (req, res) => {
+    //get the app name and code and save the latest jupiter file in s3 bucket
+    const { appName ,code } = req.body;
+
+    //convert the code to jupyter file format
+    const notebook = {
+      cells: [
+        {
+          cell_type: "code",
+          execution_count: null,
+          metadata: {},
+          outputs: [],
+          source: code.split('\n').map(line => line + '\n')
+        }
+      ],
+      metadata: {
+        kernelspec: {
+          display_name: "Python 3",
+          language: "python",
+          name: "python3"
+        },
+        language_info: {
+          name: "python",
+          version: "3.x"
+        }
+      },
+      nbformat: 4,
+      nbformat_minor: 5
+    };
+
+    // Convert the notebook object to a JSON string and then to base64
+    const jsonString = JSON.stringify(notebook, null, 2);
+    const base64 = Buffer.from(jsonString, 'utf-8').toString('base64');
+
+    const notebookName = `${Date.now()}-notebook.ipynb`;
+    console.log("DEPLOY_API_URL:", DEPLOY_API_URL);
+    await fetch(`${DEPLOY_API_URL}/${appName}/upload`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notebookName: notebookName, fileContentBase64: base64 })
+    })
+        .then((response) => {
+            if (!response.ok) throw new Error("Failed to save notebook");
+            return response.json();
+        })
+        .then((data) => {
+            console.log("Notebook saved successfully:", data);
+            res.status(200).json(data);
+        })
+        .catch((error) => {
+            console.error("Error saving notebook:", error.message);
+            res.status(500).json({ error: error.message });
+        });
+});
 
 studentRouter.post("/deploy", (req, res) => {});
 

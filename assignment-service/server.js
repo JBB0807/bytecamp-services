@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 const cors = require("cors");
 const passport = require("passport");
 const session = require("express-session");
@@ -13,7 +13,7 @@ const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   region: process.env.AWS_REGION,
-  s3ForcePathStyle: true
+  s3ForcePathStyle: true,
 });
 const BUCKET = process.env.COMMON_BUCKET;
 
@@ -48,21 +48,28 @@ app.use("/instructor", instructorRouter);
 app.use("/student", studentRouter);
 
 app.get("/", (req, res) => {
-    res.send("OK");
-  });
+  res.send("OK");
+});
+
+app.get("/notebook/save/:appname", async (req, res) => {
+});
 
 app.get("/notebook/:appName", async (req, res) => {
   try {
     const { appName } = req.params;
     const prefix = `${appName}/notebooks/`;
-    const list = await s3.listObjectsV2({ Bucket: BUCKET, Prefix: prefix }).promise();
+    const list = await s3
+      .listObjectsV2({ Bucket: BUCKET, Prefix: prefix })
+      .promise();
     if (!list.Contents || list.Contents.length === 0) {
       return res.status(404).json({ error: "Notebook not found" });
     }
     const latest = list.Contents.reduce((prev, curr) =>
       prev.LastModified > curr.LastModified ? prev : curr
     );
-    const data = await s3.getObject({ Bucket: BUCKET, Key: latest.Key }).promise();
+    const data = await s3
+      .getObject({ Bucket: BUCKET, Key: latest.Key })
+      .promise();
     res.send(data.Body.toString("utf-8"));
   } catch (error) {
     console.error("Failed to load notebook:", error);
@@ -71,4 +78,6 @@ app.get("/notebook/:appName", async (req, res) => {
 });
 
 const port = process.env.NODE_PORT || 8080;
-app.listen({ port: port, host: '::', ipv6Only: false }, () => console.log(`Listening on ${port}...`));
+app.listen({ port: port, host: "::", ipv6Only: false }, () =>
+  console.log(`Listening on ${port}...`)
+);
