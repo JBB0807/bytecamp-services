@@ -10,33 +10,71 @@ const port = process.env.NODE_PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+async function encryptPassword(password) {
+  if (!password) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    bcrypt.hash(password, 10, (err, hash) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(hash);
+      }
+    });
+  });
+}
+
 //function to conver req.body to assignment
-function convertToAssignment(req) {
+async function convertToAssignment(req) {
+  console.log("Converting request body to assignment object...");
   const {
     campid,
     programid,
     studentname,
     snakegameid,
-    originalfile,
-    editablefile,
+    appname,
+    qrcodenumber,
+    description,
     assignmenturl,
     password,
     instructorid
   } = req.body;
 
-  // const hashedPassword = await bcrypt.hash(Password, 10);
-    return {
-      campid: campid,
-      programid: programid,
-      studentname: studentname,
-      snakegameid: snakegameid,
-      originalfile: originalfile,
-      editablefile: editablefile,
-      assignmenturl: assignmenturl,
-      // passwordhash: hashedpassword,
-      passwordhash: password,
-      instructorid: instructorid,
-    };
+  console.log("Request body fields:", {
+    campid,
+    programid,
+    studentname,
+    snakegameid,
+    appname,
+    qrcodenumber,
+    description,
+    assignmenturl,
+    password,
+    instructorid
+  });
+
+  const hashPassword = await encryptPassword(req.body.password);
+
+  console.log("Password hash generated:", hashPassword);
+
+  const assignment = {
+    campid: campid ? parseInt(campid) : null,
+    programid: programid ? parseInt(programid) : null,
+    studentname: studentname || null,
+    snakegameid: snakegameid || null,
+    appname: appname || null,
+    qrcodenumber: qrcodenumber ? parseInt(qrcodenumber) : null,
+    description: description || null,
+    assignmenturl: assignmenturl || null,
+    passwordhash: hashPassword || null,
+    instructorid: instructorid ? parseInt(instructorid) : null,
+  };
+
+  console.log("Converted assignment object:", assignment);
+
+  return assignment;
   }
 
 // Create Assignment
@@ -44,25 +82,11 @@ app.post("/assignments", async (req, res) => {
   try {
     console.log("Request body:", req.body);
 
-    // const {
-    //   campid,
-    //   programid,
-    //   studentname,
-    //   snakegameid,
-    //   originalfile,
-    //   editablefile,
-    //   assignmenturl,
-    //   password,
-    //   instructorid
-    // } = req.body;
-
-    // const hashedPassword = await bcrypt.hash(Password, 10);
+    const assignment = await convertToAssignment(req);
     const newAssignment = await prisma.assignments.create({
-      data: {
-        ...convertToAssignment(req)
-      },
+      data: assignment,
     });
-
+  
     console.log("Assignment created successfully:", newAssignment);
 
     res.json({
@@ -82,6 +106,7 @@ app.get("/assignments/instructor/:instructorId", async (req, res) => {
     console.log("InstructorID:", instructorId);
     const assignments = await prisma.assignments.findMany({
       where: { instructorid: parseInt(instructorId) },
+      orderBy: { assignmentid: 'asc' },
     });
 
     if (assignments.length === 0) {
@@ -97,17 +122,65 @@ app.get("/assignments/instructor/:instructorId", async (req, res) => {
   }
 });
 
-// Read Assignment
+//Get assignment by assignmentid
 app.get("/assignments/:id", async (req, res) => {
   try {
+    const { id } = req.params;
+    console.log("Fetching assignment with ID:", id);
+
     const assignment = await prisma.assignments.findUnique({
-      where: { assignmentid: parseInt(req.params.id) },
+      where: { assignmentid: parseInt(id) },
     });
 
     if (!assignment) {
+      console.log("No assignment found for ID:", id);
       return res.status(404).json({ message: "Assignment not found" });
     }
 
+    console.log("Assignment found:", assignment);
+    res.json(assignment);
+  } catch (err) {
+    console.error("Error fetching assignment:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get Assignment by QR Code Number
+app.get("/assignments/qr/:qrNumber", async (req, res) => {
+  try {
+    console.log("Fetching assignment with QR Code Number:", req.params.qrNumber);
+
+    const assignment = await prisma.assignments.findUnique({
+      where: { qrcodenumber: parseInt(req.params.qrNumber) },
+    });
+
+    if (!assignment) {
+      console.log("No assignment found for QR Code Number:", req.params.qrNumber);
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    console.log("Assignment found:", assignment);
+    res.json(assignment);
+  } catch (err) {
+    console.error("Error fetching assignment:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+//get assignment by appname
+app.get("/assignments/appname/:appName", async (req, res) => {
+  try {
+    const { appName } = req.params;
+    const assignment = await prisma.assignments.findUnique({
+      where: { appname: appName },
+    });
+
+    if (!assignment) {
+      console.log("No assignment found for app name:", req.params.qrNumber);
+      return res.status(404).json({ message: "Assignment not found" });
+    }
+
+    console.log("Assignment found:", assignment);
     res.json(assignment);
   } catch (err) {
     console.error("Error fetching assignment:", err.message);
@@ -119,17 +192,28 @@ app.get("/assignments/:id", async (req, res) => {
 app.put("/assignments/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const data = req.body;
+    const assignment = await convertToAssignment(req);
 
-    if (data.password) {
-      // data.passwordhash = await bcrypt.hash(data.Password, 10);
-      data.passwordhash = data.password;
-      delete data.password;
+    const existingAssignment = await prisma.assignments.findUnique({
+      where: { assignmentid: parseInt(id) },
+    });
+
+    if (!existingAssignment) {
+      return res.status(404).json({ message: "Assignment not found" });
     }
+
+    // Update only the fields that are provided in the request body
+    Object.keys(assignment).forEach((key) => {
+      if (assignment[key]) {
+        existingAssignment[key] = assignment[key];
+      }
+    });
+
+    console.log("Existing Assignment before update:", existingAssignment);
 
     const updatedAssignment = await prisma.assignments.update({
       where: { assignmentid: parseInt(id) },
-      data,
+      data: existingAssignment,
     });
 
     res.json({
@@ -161,3 +245,4 @@ app.delete("/assignments/:id", async (req, res) => {
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
