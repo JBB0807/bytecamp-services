@@ -6,7 +6,6 @@ require("dotenv").config();
 const DB_ASSIGNMENT_SERVICE_URL = process.env.DB_ASSIGNMENT_SERVICE_URL;
 const DEPLOY_API_URL = process.env.DEPLOY_API_URL || "http://localhost:3600";
 
-
 studentRouter.post("/save", async (req, res) => {
     //get the app name and code and save the latest jupiter file in s3 bucket
     const { appName ,code } = req.body;
@@ -62,7 +61,9 @@ studentRouter.post("/save", async (req, res) => {
         });
 });
 
-studentRouter.post("/deploy", (req, res) => {});
+studentRouter.post("/deploy", (req, res) => {
+
+});
 
 studentRouter.get("/assignment/:qrnum", (req, res) => {
   const qrnum = req.params.qrnum;
