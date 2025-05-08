@@ -236,11 +236,13 @@ app.put("/assignments/:id", async (req, res) => {
 app.delete("/assignments/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    console.log("Deleting assignment with ID:", id);
 
     await prisma.assignments.delete({
       where: { assignmentid: parseInt(id) },
     });
 
+    console.log("Assignment deleted successfully:", id);
     res.json({ message: "Assignment deleted successfully" });
   } catch (err) {
     console.error("Error deleting assignment:", err.message);

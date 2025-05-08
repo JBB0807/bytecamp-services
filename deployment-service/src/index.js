@@ -230,17 +230,21 @@ app.post("/:appName/delete", async (req, res) => {
 
     //check if the app exists
     console.log("Checking if app exists:", appName);
+
     const appCheck = await fly.get(`/apps/${appName}`);
     console.log("App check response:", appCheck.status);
-    if (appCheck.status !== 200) {
-      console.log("App not found:", appName);
-      return res.json({ status: "App not found", app: appName });
-    }
-
+  
     await fly.delete(`/apps/${appName}`);
 
     return res.json({ status: "deleted", app: appName });
   } catch (err) {
+
+    //handle the 404 error and not treat it as a failure (no app to delete)
+    if (err.response?.status === 404) {
+      console.log("App not found, nothing to delete:", appName);
+      return res.status(200).json({ error: "App not found" });
+    }
+
     const errorData = err.response?.data || err.stack || err.message;
     console.error("App deletion error:", errorData);
     return res.status(500).json({ errorData });

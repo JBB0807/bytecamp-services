@@ -66,7 +66,7 @@ intructorRouter.post(
       const updatedAssignmentData = {
         assignmenturl: `${PROXY_URL}/${ipv6}`,
       }
-      
+
       console.log("Updating assignment with deployment details:", updatedAssignmentData);
       const updateRespone = await axios.put(
         `${DB_ASSIGNMENT_SERVICE_URL}/assignments/${assignmentId}`,
@@ -196,7 +196,6 @@ intructorRouter.delete(
       // Delete the Battlesnake API
       if(assignmentData.appname){
         console.log(`Deleting Battlesnake API: ${assignmentData.appname}`);
-        console.log("DEPLOY_API_URL:", DEPLOY_API_URL, assignmentData.appname);
         const deployResponse = await axios.post(`${DEPLOY_API_URL}/${assignmentData.appname}/delete`, {
           "appName": assignmentData.appname
         });
@@ -208,9 +207,11 @@ intructorRouter.delete(
         console.log('Response from DEPLOY_API_URL:', deployResponse.data);
       }
       
+      console.log("Deleting assignment from database:", assignmentId);
       const response = await axios.delete(
         `${DB_ASSIGNMENT_SERVICE_URL}/assignments/${assignmentId}`
       );
+      console.log("Response from DB_ASSIGNMENT_SERVICE_URL:", response.data);
       res.status(response.status).json(response.data);
     } catch (error) {
       res.status(error.response?.status || 500).json({ error: error.message });
