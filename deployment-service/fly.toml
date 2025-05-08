@@ -14,9 +14,6 @@ primary_region = 'sea'
   IMAGE_REF="registry.fly.io/snake-api-template:latest"
   FLY_API_BASE_URL = "https://api.machines.dev/v1"
 
-[services]
-  internal_only = true  
-
 [http_service]
   internal_port = 3006
   force_https = true

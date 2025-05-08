@@ -7,16 +7,17 @@ const DB_ASSIGNMENT_SERVICE_URL = process.env.DB_ASSIGNMENT_SERVICE_URL;
 const DEPLOY_API_URL = process.env.DEPLOY_API_URL || "http://localhost:3600";
 
 studentRouter.post("/save", async (req, res) => {
-    //get the app name and code and save the latest jupiter file in s3 bucket
-    const { appName ,code } = req.body;
+    //get the app name and code and save the latest jupyter file in s3 bucket
+    const { appName, code } = req.body;
 
-    //convert the code to jupyter file format
     const notebook = {
       cells: [
         {
           cell_type: "code",
           execution_count: null,
-          metadata: {},
+          metadata: {
+            language: "python"
+          },
           outputs: [],
           source: code.split('\n').map(line => line + '\n')
         }
@@ -119,6 +120,20 @@ studentRouter.post("/verify", async (req, res) => {
   } catch (error) {
     console.error("Error fetching assignment details:", error.message);
     console.error("Error details:", error);
+    res.status(error.response?.status || 500).json({ error: error.message });
+  }
+});
+
+// post restart from deployment service /appname/restart endpoint
+studentRouter.post("/restart", async (req, res) => {
+  const { appName } = req.body;
+  console.log("Received request to restart app:", appName);
+  try {
+    const response = await axios.post(`${DEPLOY_API_URL}/${appName}/restart`);
+    console.log("Restart response:", response.data);
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error("Error restarting app:", error.message);
     res.status(error.response?.status || 500).json({ error: error.message });
   }
 });
