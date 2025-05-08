@@ -8,6 +8,7 @@ const DB_ASSIGNMENT_SERVICE_URL =
   process.env.DB_ASSIGNMENT_SERVICE_URL || "http://localhost:3000";
 
 const DEPLOY_API_URL = process.env.DEPLOY_API_URL || "http://localhost:3600";
+const PROXY_URL = process.env.PROXY_URL;
 
 console.log("DB_ASSIGNMENT_SERVICE_URL:", DB_ASSIGNMENT_SERVICE_URL);
 console.log("DEPLOY_API_URL:", DEPLOY_API_URL);
@@ -29,12 +30,17 @@ intructorRouter.post(
         return res.status(400).send("No file uploaded.");
       }
 
+      //insert the initial assignment data into the database
       console.log("Creating a new assignment with data:", req.body);
-      const response = await axios.post(
+      const dbResponse = await axios.post(
         `${DB_ASSIGNMENT_SERVICE_URL}/assignments`,
         req.body
       );
-      console.log("Response from DB_ASSIGNMENT_SERVICE_URL:", response.data);
+
+      const assignmentId = dbResponse.data.assignment.assignmentid;
+      console.log("Assignment created with ID:", assignmentId);
+
+      console.log("Response from DB_ASSIGNMENT_SERVICE_URL:", dbResponse.data);
 
       // call upload api to upload the file to S3
       console.log("Uploading file to:", `${DEPLOY_API_URL}/${assignmentData.appname}/upload`);
@@ -53,9 +59,49 @@ intructorRouter.post(
       });
       console.log('Response from DEPLOY_API_URL:', deployResponse.data);
 
-      res.status(response.status).json(response.data);
+      const ipv6 = deployResponse.data.ipv6;
+      console.log("Deployed Battlesnake API IPv6:", ipv6);
+
+      // Update the assignment with the deployment details
+      const updatedAssignmentData = {
+        assignmenturl: `${PROXY_URL}/${ipv6}`,
+      }
+
+      console.log("Updating assignment with deployment details:", updatedAssignmentData);
+      const updateRespone = await axios.put(
+        `${DB_ASSIGNMENT_SERVICE_URL}/assignments/${assignmentId}`,
+        updatedAssignmentData
+      );
+
+      console.log("Response from DB_ASSIGNMENT_SERVICE_URL:", updateRespone.data);
+
+      res.status(deployResponse.status).json(deployResponse.data);
     } catch (error) {
       console.error("Error creating assignment:", error.message);
+      //delete the file from s3 and the database if the assignment creation fails
+      try {
+        console.log("Deleting file from S3 due to error in assignment creation");
+        await axios.post(`${DEPLOY_API_URL}/${req.body.appname}/delete`, {
+          "appName": req.body.appname
+        });
+
+        console.log('Response from DEPLOY_API_URL:', error.response.data);
+      } catch (deleteError) {
+        console.error("Error deleting file from S3:", deleteError.message);
+      }
+      //delete the assignment from the database
+      try {
+        console.log("Deleting assignment from database due to error in assignment creation");
+        await axios.delete(
+          `${DB_ASSIGNMENT_SERVICE_URL}/assignments/${assignmentId}`
+        );
+      } catch (deleteError) {
+        console.error("Error deleting assignment from database:", deleteError.message);
+      }
+      //send the error response to the client
+      console.error("Error response from DB_ASSIGNMENT_SERVICE_URL:", error.response.data);
+      console.error("Error response status:", error.response.status);
+
       res.status(error.response?.status || 500).json({ error: error.message });
     }
   }
@@ -148,20 +194,24 @@ intructorRouter.delete(
       } 
 
       // Delete the Battlesnake API
-      console.log('Deploying a new Battlesnake API');
-      console.log("DEPLOY_API_URL:", DEPLOY_API_URL, assignmentData.appname);
-      const deployResponse = await axios.post(`${DEPLOY_API_URL}/${assignmentData.appname}/delete`, {
-        "appName": assignmentData.appname
-      });
-      //throw error if the response is not 200
-      if (deployResponse.status !== 200) {
-        throw new Error(`Failed to delete Battlesnake API: ${deployResponse.statusText}`);
+      if(assignmentData.appname){
+        console.log(`Deleting Battlesnake API: ${assignmentData.appname}`);
+        const deployResponse = await axios.post(`${DEPLOY_API_URL}/${assignmentData.appname}/delete`, {
+          "appName": assignmentData.appname
+        });
+        //throw error if the response is not 200
+        console.log('Response from DEPLOY_API_URL:', deployResponse.data);
+        if (deployResponse.status !== 200) {
+          throw new Error(`Failed to delete Battlesnake API: ${deployResponse.statusText}`);
+        }
+        console.log('Response from DEPLOY_API_URL:', deployResponse.data);
       }
-      console.log('Response from DEPLOY_API_URL:', deployResponse.data);
-
+      
+      console.log("Deleting assignment from database:", assignmentId);
       const response = await axios.delete(
         `${DB_ASSIGNMENT_SERVICE_URL}/assignments/${assignmentId}`
       );
+      console.log("Response from DB_ASSIGNMENT_SERVICE_URL:", response.data);
       res.status(response.status).json(response.data);
     } catch (error) {
       res.status(error.response?.status || 500).json({ error: error.message });

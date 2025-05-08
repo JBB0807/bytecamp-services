@@ -192,13 +192,17 @@ app.get("/assignments/appname/:appName", async (req, res) => {
 app.put("/assignments/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    console.log("Updating assignment with ID:", id);
+
     const assignment = await convertToAssignment(req);
+    console.log("Converted assignment object for update:", assignment);
 
     const existingAssignment = await prisma.assignments.findUnique({
       where: { assignmentid: parseInt(id) },
     });
 
     if (!existingAssignment) {
+      console.log("No existing assignment found for ID:", id);
       return res.status(404).json({ message: "Assignment not found" });
     }
 
@@ -216,6 +220,8 @@ app.put("/assignments/:id", async (req, res) => {
       data: existingAssignment,
     });
 
+    console.log("Assignment updated successfully:", updatedAssignment);
+
     res.json({
       message: "Assignment updated successfully",
       assignment: updatedAssignment,
@@ -230,11 +236,13 @@ app.put("/assignments/:id", async (req, res) => {
 app.delete("/assignments/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    console.log("Deleting assignment with ID:", id);
 
     await prisma.assignments.delete({
       where: { assignmentid: parseInt(id) },
     });
 
+    console.log("Assignment deleted successfully:", id);
     res.json({ message: "Assignment deleted successfully" });
   } catch (err) {
     console.error("Error deleting assignment:", err.message);

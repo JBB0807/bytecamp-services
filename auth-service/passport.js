@@ -5,6 +5,8 @@ const passport = require("passport");
 const CustomStrategy = require("passport-custom").Strategy;
 const axios = require("axios");
 
+
+
 passport.use(
   new GoogleStrategy(
     {
@@ -14,7 +16,11 @@ passport.use(
       scope: ["profile", "email"],
     },
     function (accessToken, refreshToken, profile, callback) {
-      callback(null, {...profile, role: "instructor"});
+      // console.log("Google Strategy invoked");
+      // console.log("Access Token:", accessToken);
+      // console.log("Refresh Token:", refreshToken);
+      // console.log("Profile:", profile);
+      callback(null, { ...profile, role: "instructor" });
     }
   )
 );
@@ -57,19 +63,19 @@ passport.use(
 );
 
 passport.serializeUser((user, done) => {
-  // done(null, user);
   console.log("Serializing user:", user);
+  // done(null, user);
   done(null, {
-    userId: user.qrcodenumber || user.id,
+    userId: user.qrcodenumber || user.userId,
     displayName: user.studentname || user.displayName,
     role: user.role,
-    emails: user.emails || "none",
+    // emails: user.emails || "none",
   });
 });
 
-passport.deserializeUser(async (user, done) => {
+passport.deserializeUser((user, done) => {
+  console.log("Deserializing user:", user);
   try {
-    console.log("Deserializing user:", user);
     done(null, user);
   } catch (err) {
     console.error("Error during deserialization:", err);
