@@ -91,13 +91,6 @@ app.post("/deploy", async (req, res) => {
     return res.status(400).json({ error: "appName required" });
   }
 
-  // const notebookPath = path.join(__dirname, '../snakeapi_service/notebooks', notebookName);
-  // console.log('Resolved notebookPath:', notebookPath);
-  // if (!fs.existsSync(notebookPath)) {
-  //   console.error('Notebook not found at:', notebookPath);
-  //   return res.status(500).json({ error: `Notebook not found: ${notebookPath}` });
-  // }
-
   try {
     const fly = createFlyClient();
 
@@ -107,17 +100,6 @@ app.post("/deploy", async (req, res) => {
       org_slug: FLY_ORG,
       primary_region: "sea",
     });
-
-    // console.log('Uploading notebook to S3');
-    // const data = fs.readFileSync(notebookPath);
-    // const key = `${appName}/notebooks/${Date.now()}-notebook.ipynb`;
-    // console.log('S3 key:', key);
-    // await s3.putObject({
-    //   Bucket: COMMON_BUCKET,
-    //   Key: key,
-    //   Body: data,
-    //   ContentType: 'application/json'
-    // }).promise();
 
     console.log("Creating machine");
     const machineConfig = {
@@ -181,13 +163,21 @@ app.post("/deploy", async (req, res) => {
     const ipv6 = v6resp.data.data.allocateIpAddress.ipAddress.address;
     console.log("Allocated IPv6:", ipv6);
 
+    const machines = await fly.get(`/apps/${appName}/machines`);
+    const firstPrivateIp = machines.data[0]?.private_ip;
+    if (!firstPrivateIp) {
+      console.error("No private IP found for the machine:", machines.data);
+      return machines.status(500).json({ error: "No private IP found" });
+    }
+    console.log("First private IP:", firstPrivateIp);
+
     return res.json({
       status: "created",
       app: appName,
       ipv4,
-      ipv6,
+      ipv6 : firstPrivateIp,
       url_v4: `http://${ipv4}`,
-      url_v6: `http://[${ipv6}]`,
+      url_v6: `http://[${firstPrivateIp}]`,
     });
   } catch (err) {
     console.error(
@@ -237,16 +227,56 @@ app.post("/:appName/delete", async (req, res) => {
   try {
     const fly = createFlyClient();
     console.log("Destroying Fly app:", appName);
+
+    //check if the app exists
+    console.log("Checking if app exists:", appName);
+
+    const appCheck = await fly.get(`/apps/${appName}`);
+    console.log("App check response:", appCheck.status);
+  
     await fly.delete(`/apps/${appName}`);
 
     return res.json({ status: "deleted", app: appName });
   } catch (err) {
-    console.error("App deletion error:", err.response?.data || err.message);
-    return res.status(500).json({ error: err.response?.data || err.message });
+
+    //handle the 404 error and not treat it as a failure (no app to delete)
+    if (err.response?.status === 404) {
+      console.log("App not found, nothing to delete:", appName);
+      return res.status(200).json({ error: "App not found" });
+    }
+
+    const errorData = err.response?.data || err.stack || err.message;
+    console.error("App deletion error:", errorData);
+    return res.status(500).json({ errorData });
   }
 });
 
 const LISTEN_PORT = process.env.PORT || 3006;
 app.listen(LISTEN_PORT, "0.0.0.0", () => {
   console.log(`Deployment service listening on port ${LISTEN_PORT}`);
+});
+
+//deploy fly app based on appname
+app.post("/deploy/:appName", async (req, res) => {
+  const { appName } = req.params;
+  const { region } = req.body;
+
+  if (!appName || !region) {
+    return res.status(400).json({ error: "appName and region are required" });
+  }
+
+  try {
+    const fly = createFlyClient();
+    console.log("Creating Fly app:", appName);
+    await fly.post("/apps", {
+      app_name: appName,
+      org_slug: FLY_ORG,
+      primary_region: region,
+    });
+
+    return res.json({ status: "created", app: appName });
+  } catch (err) {
+    console.error("App creation error:", err.response?.data || err.message);
+    return res.status(500).json({ error: err.response?.data || err.message });
+  }
 });

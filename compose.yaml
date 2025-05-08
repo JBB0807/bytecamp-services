@@ -11,7 +11,7 @@ services:
     ports:
       - "3200:3200"  # Expose port to the same host
     env_file:
-      - ./assignment-db-service/.env.development
+      - ./assignment-db-service/.env.test
     networks:
       - backend
 
@@ -25,7 +25,7 @@ services:
     ports:
       - "8082:8082"  # Expose port to the same host
     env_file:
-      - ./assignment-service/.env.development
+      - ./assignment-service/.env.test
     depends_on:
       - js-assignment-db-service
     networks:
@@ -41,7 +41,7 @@ services:
     ports:
       - "8080:8080"  # Expose port to the same host
     env_file:
-      - ./auth-service/.env.development
+      - ./auth-service/.env.test
     networks:
       - backend
 
@@ -55,7 +55,21 @@ services:
     ports:
       - "3100:3100"  # Expose port to the same host
     env_file:
-      - ./user-db-service/.env.development
+      - ./user-db-service/.env.test
+    networks:
+      - backend
+
+  js-deployment-service:
+    build:
+      context: ./deployment-service
+      dockerfile: DockerfileDEV
+    container_name: js-deployment-service
+    restart: unless-stopped
+    init: true
+    ports:
+      - "3100:3100"  # Expose port to the same host
+    env_file:
+      - ./deployment-service/.env.test
     networks:
       - backend
 
