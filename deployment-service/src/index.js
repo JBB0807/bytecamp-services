@@ -163,13 +163,21 @@ app.post("/deploy", async (req, res) => {
     const ipv6 = v6resp.data.data.allocateIpAddress.ipAddress.address;
     console.log("Allocated IPv6:", ipv6);
 
+    const machines = await fly.get(`/apps/${appName}/machines`);
+    const firstPrivateIp = machines.data[0]?.private_ip;
+    if (!firstPrivateIp) {
+      console.error("No private IP found for the machine:", machines.data);
+      return machines.status(500).json({ error: "No private IP found" });
+    }
+    console.log("First private IP:", firstPrivateIp);
+
     return res.json({
       status: "created",
       app: appName,
       ipv4,
-      ipv6,
+      ipv6 : firstPrivateIp,
       url_v4: `http://${ipv4}`,
-      url_v6: `http://[${ipv6}]`,
+      url_v6: `http://[${firstPrivateIp}]`,
     });
   } catch (err) {
     console.error(

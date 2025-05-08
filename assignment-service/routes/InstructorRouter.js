@@ -8,6 +8,7 @@ const DB_ASSIGNMENT_SERVICE_URL =
   process.env.DB_ASSIGNMENT_SERVICE_URL || "http://localhost:3000";
 
 const DEPLOY_API_URL = process.env.DEPLOY_API_URL || "http://localhost:3600";
+const PROXY_URL = process.env.PROXY_URL;
 
 console.log("DB_ASSIGNMENT_SERVICE_URL:", DB_ASSIGNMENT_SERVICE_URL);
 console.log("DEPLOY_API_URL:", DEPLOY_API_URL);
@@ -63,8 +64,9 @@ intructorRouter.post(
 
       // Update the assignment with the deployment details
       const updatedAssignmentData = {
-        assignmenturl: ipv6,
+        assignmenturl: `${PROXY_URL}/${ipv6}`,
       }
+      
       console.log("Updating assignment with deployment details:", updatedAssignmentData);
       const updateRespone = await axios.put(
         `${DB_ASSIGNMENT_SERVICE_URL}/assignments/${assignmentId}`,
