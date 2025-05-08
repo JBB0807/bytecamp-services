@@ -2,7 +2,7 @@ app = 'deployment-service-test'
 primary_region = 'sea'
 
 [build]
-dockerfile = "Dockerfile"
+  dockerfile = "Dockerfile"
 
 [env]
   FLY_ORG="personal"
@@ -15,5 +15,5 @@ dockerfile = "Dockerfile"
   FLY_API_BASE_URL = "https://api.machines.dev/v1"
 
 [http_service]
-internal_port = 3006
-force_https = true
+  internal_port = 3006
+  force_https = true

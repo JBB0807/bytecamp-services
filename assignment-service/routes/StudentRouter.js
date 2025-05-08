@@ -4,11 +4,67 @@ const axios = require("axios");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 const DB_ASSIGNMENT_SERVICE_URL = process.env.DB_ASSIGNMENT_SERVICE_URL;
+const DEPLOY_API_URL = process.env.DEPLOY_API_URL || "http://localhost:3600";
 
+studentRouter.post("/save", async (req, res) => {
+    //get the app name and code and save the latest jupyter file in s3 bucket
+    const { appName, code } = req.body;
 
-studentRouter.post("/save", (req, res) => {});
+    const notebook = {
+      cells: [
+        {
+          cell_type: "code",
+          execution_count: null,
+          metadata: {
+            language: "python"
+          },
+          outputs: [],
+          source: code.split('\n').map(line => line + '\n')
+        }
+      ],
+      metadata: {
+        kernelspec: {
+          display_name: "Python 3",
+          language: "python",
+          name: "python3"
+        },
+        language_info: {
+          name: "python",
+          version: "3.x"
+        }
+      },
+      nbformat: 4,
+      nbformat_minor: 5
+    };
 
-studentRouter.post("/deploy", (req, res) => {});
+    // Convert the notebook object to a JSON string and then to base64
+    const jsonString = JSON.stringify(notebook, null, 2);
+    const base64 = Buffer.from(jsonString, 'utf-8').toString('base64');
+
+    const notebookName = `${Date.now()}-notebook.ipynb`;
+    console.log("DEPLOY_API_URL:", DEPLOY_API_URL);
+    await fetch(`${DEPLOY_API_URL}/${appName}/upload`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notebookName: notebookName, fileContentBase64: base64 })
+    })
+        .then((response) => {
+            if (!response.ok) throw new Error("Failed to save notebook");
+            return response.json();
+        })
+        .then((data) => {
+            console.log("Notebook saved successfully:", data);
+            res.status(200).json(data);
+        })
+        .catch((error) => {
+            console.error("Error saving notebook:", error.message);
+            res.status(500).json({ error: error.message });
+        });
+});
+
+studentRouter.post("/deploy", (req, res) => {
+
+});
 
 studentRouter.get("/assignment/:qrnum", (req, res) => {
   const qrnum = req.params.qrnum;
@@ -64,6 +120,20 @@ studentRouter.post("/verify", async (req, res) => {
   } catch (error) {
     console.error("Error fetching assignment details:", error.message);
     console.error("Error details:", error);
+    res.status(error.response?.status || 500).json({ error: error.message });
+  }
+});
+
+// post restart from deployment service /appname/restart endpoint
+studentRouter.post("/restart", async (req, res) => {
+  const { appName } = req.body;
+  console.log("Received request to restart app:", appName);
+  try {
+    const response = await axios.post(`${DEPLOY_API_URL}/${appName}/restart`);
+    console.log("Restart response:", response.data);
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    console.error("Error restarting app:", error.message);
     res.status(error.response?.status || 500).json({ error: error.message });
   }
 });

@@ -220,6 +220,28 @@ app.post("/:appName/upload", async (req, res) => {
   }
 });
 
+// restart a Fly app
+app.post("/:appName/restart", async (req, res) => {
+  const { appName } = req.params;
+  try {
+    const fly = createFlyClient();
+    const { data: machines } = await fly.get(`/apps/${appName}/machines`);
+    if (!machines || !Array.isArray(machines) || machines.length === 0) {
+      return res.status(404).json({ error: "No machines found for this app" });
+    }
+    const results = await Promise.all(
+      machines.map(machine =>
+        fly.post(`/apps/${appName}/machines/${machine.id}/restart`)
+      )
+    );
+    res.json({ status: "restarted", app: appName, count: results.length });
+  } catch (err) {
+    console.error("Restart error:", err.response?.data || err.message);
+    res.status(500).json({ error: err.response?.data || err.message });
+  }
+});
+
+
 // Delete a Fly app
 app.post("/:appName/delete", async (req, res) => {
   const { appName } = req.params;
