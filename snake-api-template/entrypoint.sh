@@ -6,7 +6,7 @@ mkdir -p "${NOTEBOOK_DIR}"
 # fetch latest notebook
 echo "Syncing notebooks from S3 bucket..."
 aws --endpoint-url "$AWS_ENDPOINT_URL_S3" --region "$AWS_REGION" \
-  s3 sync "s3://$BUCKET_NAME/$INSTANCE_PREFIX/notebooks/" "${NOTEBOOK_DIR}/"
+  s3 sync "s3://$COMMON_BUCKET/$INSTANCE_PREFIX/notebooks/" "${NOTEBOOK_DIR}/"
 
 # convert to Python script for dynamic import
 echo "Finding the latest notebook..."
