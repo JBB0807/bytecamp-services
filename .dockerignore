@@ -5,8 +5,7 @@ yarn-debug.log
 yarn-error.log
 
 # Environment and secrets
-.env*
-*.env
+**/*.env*
 *.pem
 *.key
 *.crt
