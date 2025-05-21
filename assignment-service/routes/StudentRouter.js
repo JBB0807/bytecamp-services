@@ -10,28 +10,30 @@ studentRouter.post("/save", async (req, res) => {
     //get the app name and code and save the latest jupyter file in s3 bucket
     const { appName, code } = req.body;
 
+    console.log("Received save request for app:", appName);
+
     const notebook = {
       cells: [
-        {
-          cell_type: "code",
-          execution_count: null,
-          metadata: {
-            language: "python"
-          },
-          outputs: [],
-          source: code.split('\n').map(line => line + '\n')
-        }
+      {
+        cell_type: "code",
+        execution_count: null,
+        metadata: {
+        language: "python"
+        },
+        outputs: [],
+        source: code.split('\n').map(line => line + '\n')
+      }
       ],
       metadata: {
-        kernelspec: {
-          display_name: "Python 3",
-          language: "python",
-          name: "python3"
-        },
-        language_info: {
-          name: "python",
-          version: "3.x"
-        }
+      kernelspec: {
+        display_name: "Python 3",
+        language: "python",
+        name: "python3"
+      },
+      language_info: {
+        name: "python",
+        version: "3.x"
+      }
       },
       nbformat: 4,
       nbformat_minor: 5
@@ -43,23 +45,25 @@ studentRouter.post("/save", async (req, res) => {
 
     const notebookName = `${Date.now()}-notebook.ipynb`;
     console.log("DEPLOY_API_URL:", DEPLOY_API_URL);
+    console.log("Uploading notebook:", notebookName, "to app:", appName);
+
     await fetch(`${DEPLOY_API_URL}/${appName}/upload`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notebookName: notebookName, fileContentBase64: base64 })
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notebookName: notebookName, fileContentBase64: base64 })
     })
-        .then((response) => {
-            if (!response.ok) throw new Error("Failed to save notebook");
-            return response.json();
-        })
-        .then((data) => {
-            console.log("Notebook saved successfully:", data);
-            res.status(200).json(data);
-        })
-        .catch((error) => {
-            console.error("Error saving notebook:", error.message);
-            res.status(500).json({ error: error.message });
-        });
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to save notebook");
+        return response.json();
+      })
+      .then((data) => {
+        console.log("Notebook saved successfully:", data);
+        res.status(200).json(data);
+      })
+      .catch((error) => {
+        console.error("Error saving notebook:", error.message);
+        res.status(500).json({ error: error.message });
+      });
 });
 
 studentRouter.get("/assignment/:qrnum", (req, res) => {

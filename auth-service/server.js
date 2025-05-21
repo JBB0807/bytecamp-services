@@ -7,11 +7,8 @@ const passportSetup = require("./passport");
 const authRoute = require("./routes/auth");
 const apiRoute = require("./routes/api");
 const session = require("express-session");
-const bodyParser = require("body-parser");
 
 const app = express();
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 
 // console.log("AUTH_URL:", process.env.AUTH_URL);
 const isProduction = process.env.NODE_ENV === "production";

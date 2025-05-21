@@ -2,6 +2,13 @@ const auth = require("express").Router();
 const passport = require("passport");
 const axios = require("axios");
 
+const express = require("express");
+
+const bodyParser = require("body-parser");
+
+auth.use(express.json());
+auth.use(bodyParser.urlencoded({ extended: true }));
+
 const AUTH_URL = process.env.AUTH_URL || "http://localhost:8080";
 
 auth.get(
