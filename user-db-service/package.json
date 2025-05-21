@@ -7,6 +7,10 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon app.js"
+    "dev": "dotenv -e .env.development nodemon app.js"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22",
+    "dotenv-cli": "^8.0.0"
   }
 }

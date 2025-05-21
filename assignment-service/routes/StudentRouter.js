@@ -62,10 +62,6 @@ studentRouter.post("/save", async (req, res) => {
         });
 });
 
-studentRouter.post("/deploy", (req, res) => {
-
-});
-
 studentRouter.get("/assignment/:qrnum", (req, res) => {
   const qrnum = req.params.qrnum;
   console.log("Fetching details for qr number:", qrnum);

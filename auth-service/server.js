@@ -5,6 +5,7 @@ const express = require("express");
 const passport = require("passport");
 const passportSetup = require("./passport");
 const authRoute = require("./routes/auth");
+const apiRoute = require("./routes/api");
 const session = require("express-session");
 const bodyParser = require("body-parser");
 
@@ -48,6 +49,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+app.use("/api", apiRoute);
 app.use("/auth", authRoute);
 
 const port = process.env.PORT || 8080;

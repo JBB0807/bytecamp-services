@@ -1,10 +1,10 @@
-const router = require("express").Router();
+const auth = require("express").Router();
 const passport = require("passport");
 const axios = require("axios");
 
 const AUTH_URL = process.env.AUTH_URL || "http://localhost:8080";
 
-router.get(
+auth.get(
   "/google/callback",
   passport.authenticate("google", {
     failureRedirect: "/auth/login/failed",
@@ -41,7 +41,7 @@ router.get(
   }
 );
 
-router.get("/current_user", (req, res) => {
+auth.get("/current_user", (req, res) => {
   console.log("Current user endpoint hit");
   console.log("Request user:", req.user);
   if (req.isAuthenticated()) {
@@ -76,16 +76,16 @@ router.get("/current_user", (req, res) => {
 // }
 // });
 
-router.get("/login/failed", (req, res) => {
+auth.get("/login/failed", (req, res) => {
   res.status(401).json({
     error: true,
     message: "Log in failure",
   });
 });
 
-router.get("/google", passport.authenticate("google", ["profile", "email"]));
+auth.get("/google", passport.authenticate("google", ["profile", "email"]));
 
-router.post(
+auth.post(
   "/student/login",
   passport.authenticate("student-auth", { keepSessionInfo: true }),
   (req, res) => {
@@ -117,7 +117,7 @@ router.post(
   }
 );
 
-router.get("/logout", (req, res) => {
+auth.get("/logout", (req, res) => {
   req.logout((err) => {
     if (err) {
       return next(err);
@@ -126,4 +126,4 @@ router.get("/logout", (req, res) => {
   });
 });
 
-module.exports = router;
+module.exports = auth;
