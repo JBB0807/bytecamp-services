@@ -3,19 +3,23 @@ const cors = require("cors");
 const passport = require("passport");
 const session = require("express-session");
 
+const axios = require("axios");
+
 const express = require("express");
 const AWS = require("aws-sdk");
 const instructorRouter = require("./routes/InstructorRouter");
 const studentRouter = require("./routes/StudentRouter");
 
-const s3 = new AWS.S3({
-  endpoint: process.env.AWS_ENDPOINT_URL_S3,
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION,
-  s3ForcePathStyle: true,
-});
-const BUCKET = process.env.COMMON_BUCKET;
+const DEPLOY_API_URL = process.env.DEPLOY_API_URL || "http://localhost:3600";
+
+// const s3 = new AWS.S3({
+//   endpoint: process.env.AWS_ENDPOINT_URL_S3,
+//   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+//   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+//   region: process.env.AWS_REGION,
+//   s3ForcePathStyle: true,
+// });
+// const BUCKET = process.env.COMMON_BUCKET;
 
 const app = express();
 app.use(express.json());
@@ -57,20 +61,17 @@ app.get("/notebook/save/:appname", async (req, res) => {
 app.get("/notebook/:appName", async (req, res) => {
   try {
     const { appName } = req.params;
-    const prefix = `${appName}/notebooks/`;
-    const list = await s3
-      .listObjectsV2({ Bucket: BUCKET, Prefix: prefix })
-      .promise();
-    if (!list.Contents || list.Contents.length === 0) {
-      return res.status(404).json({ error: "Notebook not found" });
+    console.log(`Fetching notebook for appName: ${appName}`);
+
+    const response = await axios.get(`${DEPLOY_API_URL}/notebook/${appName}`);
+    if (response.status !== 200) {
+      console.log(`Failed to restart app for appName: ${appName}`);
+      return res.status(500).json({ error: "Failed to restart app" });
     }
-    const latest = list.Contents.reduce((prev, curr) =>
-      prev.LastModified > curr.LastModified ? prev : curr
-    );
-    const data = await s3
-      .getObject({ Bucket: BUCKET, Key: latest.Key })
-      .promise();
-    res.send(data.Body.toString("utf-8"));
+    
+    console.log(`Notebook data received for appName: ${appName}`);
+    res.status(200).json(response.data);
+
   } catch (error) {
     console.error("Failed to load notebook:", error);
     res.status(500).json({ error: "Failed to load notebook" });

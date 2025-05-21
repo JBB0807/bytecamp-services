@@ -273,11 +273,6 @@ app.post("/:appName/delete", async (req, res) => {
   }
 });
 
-const LISTEN_PORT = process.env.PORT || 3006;
-app.listen(LISTEN_PORT, "0.0.0.0", () => {
-  console.log(`Deployment service listening on port ${LISTEN_PORT}`);
-});
-
 //deploy fly app based on appname
 app.post("/deploy/:appName", async (req, res) => {
   const { appName } = req.params;
@@ -301,4 +296,33 @@ app.post("/deploy/:appName", async (req, res) => {
     console.error("App creation error:", err.response?.data || err.message);
     return res.status(500).json({ error: err.response?.data || err.message });
   }
+});
+
+app.get("/notebook/:appName", async (req, res) => {
+  try {
+    const { appName } = req.params;
+    const prefix = `${appName}/notebooks/`;
+    const list = await s3
+      .listObjectsV2({ Bucket: COMMON_BUCKET, Prefix: prefix })
+      .promise();
+    if (!list.Contents || list.Contents.length === 0) {
+      return res.status(404).json({ error: "Notebook not found" });
+    }
+    const latest = list.Contents.reduce((prev, curr) =>
+      prev.LastModified > curr.LastModified ? prev : curr
+    );
+    const data = await s3
+      .getObject({ Bucket: COMMON_BUCKET, Key: latest.Key })
+      .promise();
+    res.send(data.Body.toString("utf-8"));
+  } catch (error) {
+    console.error("Failed to load notebook:", error);
+    res.status(500).json({ error: "Failed to load notebook" });
+  }
+});
+
+
+const LISTEN_PORT = process.env.NODE_PORT || 8080;
+app.listen(LISTEN_PORT, () => {
+  console.log(`Server running at :${LISTEN_PORT}`);
 });

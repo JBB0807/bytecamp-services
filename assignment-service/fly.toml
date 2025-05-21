@@ -1,4 +1,4 @@
-# fly.toml app configuration file generated for assignment-service on 2025-05-09T00:17:41-07:00
+# fly.toml app configuration file generated for assignment-service on 2025-05-20T12:51:18-07:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
@@ -8,40 +8,19 @@ primary_region = 'sea'
 
 [build]
 
-[build]
-# Only needed if you're using a Dockerfile — can be empty if using buildpacks or Node preset
-
-# Removed the [http_service] section to disable public HTTP/HTTPS access
-# [http_service]
-#   internal_port = 3000
-#   force_https = true
-#   auto_stop_machines = true
-#   auto_start_machines = true
-#   min_machines_running = 0
-#   processes = ["app"]
-
 [[services]]
-  protocol = "tcp"
+  protocol = 'tcp'
   internal_port = 8080
-  internal_only = true  # Makes this service only accessible internally
+  auto_stop_machines = 'stop'
   auto_start_machines = true
-  auto_stop_machines = true
-
-  # Removed public port exposure
-  # [[services.ports]]
-  #   port = 80
-  #   handlers = ["http"]
-
-  # [[services.ports]]
-  #   port = 443
-  #   handlers = ["tls", "http"]
+  ports = []  # ✅ No public ports = no public IP
 
   [services.concurrency]
-    type = "requests"
+    type = 'requests'
     hard_limit = 1000
     soft_limit = 500
 
 [[vm]]
   memory = '1gb'
-  cpu_kind = "shared"
+  cpu_kind = 'shared'
   cpus = 1

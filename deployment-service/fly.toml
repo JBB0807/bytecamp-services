@@ -1,51 +1,27 @@
-app = 'deployment-service-test'
+# fly.toml app configuration file generated for deployment-service on 2025-05-20T16:15:07-07:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'deployment-service'
 primary_region = 'sea'
 
 [build]
-  dockerfile = "Dockerfile"
-
-[env]
-  FLY_ORG="personal"
-  COMMON_BUCKET="snakeapi-deployment-test-bucket"
-  AWS_ACCESS_KEY_ID="tid__NSmOVaGknqitaCySppZjqVTgJSdDFnFbWcQllkC_juHwkbQZO"
-  AWS_SECRET_ACCESS_KEY="tsec_6Bz1aMbfYQftuq5WfIVEDZkHwskU4MMjVywdtxSP6uxetEBvkSC2VHI9HfTeDgHr4D6kiz"
-  AWS_ENDPOINT_URL_S3="https://fly.storage.tigris.dev"
-  AWS_REGION="auto"
-  IMAGE_REF="registry.fly.io/snake-api-template:latest"
-  FLY_API_BASE_URL = "https://api.machines.dev/v1"
-
-
-# Removed the [http_service] section to disable public HTTP/HTTPS access
-# [http_service]
-#   internal_port = 3000
-#   force_https = true
-#   auto_stop_machines = true
-#   auto_start_machines = true
-#   min_machines_running = 0
-#   processes = ["app"]
+  dockerfile = 'Dockerfile'
 
 [[services]]
-  protocol = "tcp"
+  protocol = 'tcp'
   internal_port = 8080
-  internal_only = true  # Makes this service only accessible internally
+  auto_stop_machines = 'stop'
   auto_start_machines = true
-  auto_stop_machines = true
-
-  # Removed public port exposure
-  # [[services.ports]]
-  #   port = 80
-  #   handlers = ["http"]
-
-  # [[services.ports]]
-  #   port = 443
-  #   handlers = ["tls", "http"]
+  ports = []
 
   [services.concurrency]
-    type = "requests"
+    type = 'requests'
     hard_limit = 1000
     soft_limit = 500
 
 [[vm]]
   memory = '1gb'
-  cpu_kind = "shared"
+  cpu_kind = 'shared'
   cpus = 1
